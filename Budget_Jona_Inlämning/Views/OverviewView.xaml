@@ -2,8 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:helpers="clr-namespace:Budget_Jona_Inlämning.Helpers"
              mc:Ignorable="d"
              x:Class="Budget_Jona_Inlämning.Views.OverviewView">
+    <UserControl.Resources>
+        <helpers:IncomeLossNetConverter x:Key="IncomeLossNetConverter"/>
+    </UserControl.Resources>
+
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -40,9 +45,7 @@
             <Grid Grid.Column="0" Margin="0,0,8,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*"/>
-                    <!-- Transactions (2/3) -->
                     <RowDefinition Height="*"/>
-                    <!-- Projection (1/3) -->
                 </Grid.RowDefinitions>
 
                 <DataGrid Grid.Row="0"
@@ -71,7 +74,6 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <!-- Projected panel placed under transactions, taking 1/3 of left column -->
                 <Border Grid.Row="1" Padding="8" Margin="0,8,0,0" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Background="#FFF">
                     <StackPanel>
                         <TextBlock Text="Projected (next month)" FontWeight="Bold" Margin="0,0,0,8"/>
@@ -84,6 +86,54 @@
                             <TextBlock Text="{Binding ProjectedNet, StringFormat=C}" />
                         </StackPanel>
                         <TextBlock Text="{Binding IncomeLossAdjustment, StringFormat='IncomeLoss adjustment: {0:C}'}" HorizontalAlignment="Right" FontStyle="Italic" Margin="0,8,0,0"/>
+
+                        <Expander Header="IncomeLoss details" IsExpanded="False" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Current month" FontWeight="Bold" Margin="0,4,0,4"/>
+                                <ItemsControl ItemsSource="{Binding CurrentIncomeLosses}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
+                                                <TextBlock Text="{Binding Date, StringFormat=d}" Width="80"/>
+                                                <TextBlock Text="{Binding AmountLost, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
+                                                <TextBlock Text=" → " Margin="6,0"/>
+                                                <TextBlock Text="{Binding RefundAmount, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
+                                                <TextBlock Margin="8,0,0,0">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource IncomeLossNetConverter}" StringFormat="Net: {0:C}">
+                                                            <Binding Path="AmountLost"/>
+                                                            <Binding Path="RefundAmount"/>
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="Next month" FontWeight="Bold" Margin="0,8,0,4"/>
+                                <ItemsControl ItemsSource="{Binding ProjectedIncomeLosses}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
+                                                <TextBlock Text="{Binding Date, StringFormat=d}" Width="80"/>
+                                                <TextBlock Text="{Binding AmountLost, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
+                                                <TextBlock Text=" → " Margin="6,0"/>
+                                                <TextBlock Text="{Binding RefundAmount, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
+                                                <TextBlock Margin="8,0,0,0">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource IncomeLossNetConverter}" StringFormat="Net: {0:C}">
+                                                            <Binding Path="AmountLost"/>
+                                                            <Binding Path="RefundAmount"/>
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Expander>
                     </StackPanel>
                 </Border>
             </Grid>

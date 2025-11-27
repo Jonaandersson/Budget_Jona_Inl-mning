@@ -5,8 +5,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Budget_Jona_Inlämning.Models;
+using System.Windows;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
@@ -45,10 +45,12 @@ public sealed class MainViewModel : ObservableObject
         {
             ilNotify.PropertyChanged += this.Child_PropertyChanged;
         }
+
+        this.CurrentIncomeLosses = new ObservableCollection<IncomeLoss>();
+        this.ProjectedIncomeLosses = new ObservableCollection<IncomeLoss>();
     }
 
     // Expose collections and properties expected by existing views (wrappers)
-
     public ObservableCollection<Transaction> Transactions => this._transactionsVm.Transactions;
     public Transaction? SelectedTransaction
     {
@@ -59,21 +61,25 @@ public sealed class MainViewModel : ObservableObject
     public ObservableCollection<Category> Categories => this._categoriesVm.Categories;
     public ObservableCollection<IncomeLoss> IncomeLosses => this._incomeLossesVm.IncomeLosses;
 
+    // New: lists to present income-loss details
+    public ObservableCollection<IncomeLoss> CurrentIncomeLosses { get; }
+    public ObservableCollection<IncomeLoss> ProjectedIncomeLosses { get; }
+
     // Totals forwarded from Transactions VM
     public decimal IncomeTotal => this._transactionsVm.IncomeTotal;
     public decimal ExpenseTotal => this._transactionsVm.ExpenseTotal;
     public decimal NetTotal => this.IncomeTotal - this.ExpenseTotal;
 
     // Commands forwarded from child VMs so XAML bindings keep working
-    public IRelayCommand LoadCommand => this._transactionsVm.LoadCommand;
-    public IRelayCommand AddTransactionCommand => this._transactionsVm.AddCommand;
-    public IRelayCommand<Transaction?> EditTransactionCommand => this._transactionsVm.EditCommand;
-    public IRelayCommand<Transaction?> DeleteTransactionCommand => this._transactionsVm.DeleteCommand;
+    public CommunityToolkit.Mvvm.Input.IRelayCommand LoadCommand => this._transactionsVm.LoadCommand;
+    public CommunityToolkit.Mvvm.Input.IRelayCommand AddTransactionCommand => this._transactionsVm.AddCommand;
+    public CommunityToolkit.Mvvm.Input.IRelayCommand<Transaction?> EditTransactionCommand => this._transactionsVm.EditCommand;
+    public CommunityToolkit.Mvvm.Input.IRelayCommand<Transaction?> DeleteTransactionCommand => this._transactionsVm.DeleteCommand;
 
-    public IRelayCommand AddCategoryCommand => this._categoriesVm.AddCommand;
-    public IRelayCommand<Category?> EditCategoryCommand => this._categoriesVm.EditCommand;
-    public IRelayCommand<Category?> DeleteCategoryCommand => this._categoriesVm.DeleteCommand;
-    public IRelayCommand AddIncomeLossCommand => this._incomeLossesVm.AddCommand;
+    public CommunityToolkit.Mvvm.Input.IRelayCommand AddCategoryCommand => this._categoriesVm.AddCommand;
+    public CommunityToolkit.Mvvm.Input.IRelayCommand<Category?> EditCategoryCommand => this._categoriesVm.EditCommand;
+    public CommunityToolkit.Mvvm.Input.IRelayCommand<Category?> DeleteCategoryCommand => this._categoriesVm.DeleteCommand;
+    public CommunityToolkit.Mvvm.Input.IRelayCommand AddIncomeLossCommand => this._incomeLossesVm.AddCommand;
 
     // Projection properties
     public decimal ProjectedIncome
@@ -108,9 +114,8 @@ public sealed class MainViewModel : ObservableObject
         await this._transactionsVm.LoadAsync().ConfigureAwait(false);
         await this._incomeLossesVm.LoadAsync().ConfigureAwait(false);
 
-        // Compute projection on UI-safe data
+        // Compute projection and update lists on UI thread
         this.ComputeProjections();
-        // Notify totals forwarded
         this.NotifyTotals();
     }
 
@@ -125,13 +130,38 @@ public sealed class MainViewModel : ObservableObject
         var oneTimeIncomeNext = this._transactionsVm.Transactions.Where(t => !t.IsMonthly && t.IsIncome && t.Date.Year == nextMonth.Year && t.Date.Month == nextMonth.Month).Sum(t => t.Amount);
         var oneTimeExpenseNext = this._transactionsVm.Transactions.Where(t => !t.IsMonthly && !t.IsIncome && t.Date.Year == nextMonth.Year && t.Date.Month == nextMonth.Month).Sum(t => t.Amount);
 
-        var adjustment = this._incomeLossesVm.ComputeAdjustmentForMonths((today.Year, today.Month), (nextMonth.Year, nextMonth.Month));
+        // Refresh IncomeLoss lists for current/next month
+        var currentMonthSet = (today.Year, today.Month);
+        var nextMonthSet = (nextMonth.Year, nextMonth.Month);
+
+        var currentItems = this._incomeLossesVm.IncomeLosses
+            .Where(i => (i.Date.Year, i.Date.Month) == currentMonthSet)
+            .OrderByDescending(i => i.Date)
+            .ToList();
+
+        var projectedItems = this._incomeLossesVm.IncomeLosses
+            .Where(i => (i.Date.Year, i.Date.Month) == nextMonthSet || (i.Date.Year, i.Date.Month) == currentMonthSet)
+            .OrderByDescending(i => i.Date)
+            .ToList();
+
+        // Net adjustment (AmountLost - RefundAmount)
+        var adjustment = this._incomeLossesVm.ComputeAdjustmentForMonths(currentMonthSet, nextMonthSet);
         var netLoss = Math.Max(0m, adjustment);
 
         this.IncomeLossAdjustment = netLoss;
         this.ProjectedIncome = recurringIncome + oneTimeIncomeNext - netLoss;
         this.ProjectedExpense = recurringExpense + oneTimeExpenseNext;
         this.ProjectedNet = this.ProjectedIncome - this.ProjectedExpense;
+
+        // Update collections on UI thread
+        Application.Current?.Dispatcher.Invoke(() =>
+        {
+            this.CurrentIncomeLosses.Clear();
+            foreach (var i in currentItems) this.CurrentIncomeLosses.Add(i);
+
+            this.ProjectedIncomeLosses.Clear();
+            foreach (var i in projectedItems) this.ProjectedIncomeLosses.Add(i);
+        });
     }
 
     // Forward child property changes (to update IncomeTotal/ExpenseTotal etc)
@@ -143,7 +173,7 @@ public sealed class MainViewModel : ObservableObject
             this.NotifyTotals();
         }
 
-        // If income-loss list changed, recompute projections
+        // If income-loss list changed, recompute projections and lists
         if (e.PropertyName is "IncomeLosses")
         {
             this.ComputeProjections();
