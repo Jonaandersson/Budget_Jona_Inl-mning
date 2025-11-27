@@ -11,7 +11,7 @@ using Budget_Jona_Inlämning.Views;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
-public sealed class TransactionEditorViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
+public sealed partial class TransactionEditorViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
 {
     private readonly ITransactionService _transactionService;
     private readonly ICategoryService _categoryService;
@@ -20,13 +20,11 @@ public sealed class TransactionEditorViewModel : BaseViewModel, IDialogRequestCl
 
     public event EventHandler? CloseRequested;
 
-    public Transaction Model { get; }
+    // Generated property: public Transaction Model { get; set; }
+    [ObservableProperty]
+    private Transaction model = new Transaction { Date = DateTime.Today };
 
     public ObservableCollection<Category> Categories { get; } = new();
-
-    public IRelayCommand SaveCommand { get; }
-    public IRelayCommand CancelCommand { get; }
-    public IRelayCommand AddCategoryCommand { get; }
 
     public bool? DialogResult { get; private set; }
 
@@ -40,11 +38,6 @@ public sealed class TransactionEditorViewModel : BaseViewModel, IDialogRequestCl
         this._categoryService = categoryService;
         this._dialogService = dialogService;
         this._categoryEditorFactory = categoryEditorFactory;
-
-        this.Model = new Transaction { Date = DateTime.Today };
-        this.SaveCommand = new AsyncRelayCommand(this.SaveAsync);
-        this.CancelCommand = new RelayCommand(this.Cancel);
-        this.AddCategoryCommand = new AsyncRelayCommand(this.AddCategoryAsync);
     }
 
     public TransactionEditorViewModel(
@@ -79,12 +72,13 @@ public sealed class TransactionEditorViewModel : BaseViewModel, IDialogRequestCl
         });
     }
 
+    [RelayCommand]
     private async Task AddCategoryAsync()
     {
         var editor = this._categoryEditorFactory();
         var view = new CategoryEditView();
 
-        // show dialog; do not ConfigureAwait(false) so UI flow is preserved
+        // show dialog; keep context so UI flow is preserved
         var result = await this._dialogService.ShowDialogAsync(view, editor);
         if (result == true)
         {
@@ -93,6 +87,7 @@ public sealed class TransactionEditorViewModel : BaseViewModel, IDialogRequestCl
         }
     }
 
+    [RelayCommand]
     private async Task SaveAsync()
     {
         if (this.IsBusy) return;
@@ -120,6 +115,7 @@ public sealed class TransactionEditorViewModel : BaseViewModel, IDialogRequestCl
         }
     }
 
+    [RelayCommand]
     private void Cancel()
     {
         this.DialogResult = false;

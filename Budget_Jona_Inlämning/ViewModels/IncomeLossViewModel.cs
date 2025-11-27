@@ -12,38 +12,24 @@ using Budget_Jona_Inlämning.Views;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
-public sealed class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
+public sealed partial class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
 {
     private readonly IIncomeLossService _incomeLossService;
     private readonly IDialogService _dialogService;
 
-    public IncomeLoss Model { get; }
+    // Generated property: public IncomeLoss Model { get; set; }
+    [ObservableProperty]
+    private IncomeLoss model = new IncomeLoss { Date = DateTime.Today, RefundPercentage = 0.80m };
 
     public ObservableCollection<IncomeLoss> IncomeLosses { get; } = new();
 
-    public IRelayCommand SaveCommand { get; }
-    public IRelayCommand CancelCommand { get; }
-
-    public IRelayCommand LoadCommand { get; }
-    public IRelayCommand AddCommand { get; }
-    public IRelayCommand<IncomeLoss?> DeleteCommand { get; }
-
-    public event EventHandler? CloseRequested;
     public bool? DialogResult { get; private set; }
+    public event EventHandler? CloseRequested;
 
     public IncomeLossViewModel(IIncomeLossService incomeLossService, IDialogService dialogService)
     {
         this._incomeLossService = incomeLossService;
         this._dialogService = dialogService;
-
-        this.Model = new IncomeLoss { Date = DateTime.Today, RefundPercentage = 0.80m };
-
-        this.SaveCommand = new AsyncRelayCommand(this.SaveAsync);
-        this.CancelCommand = new RelayCommand(this.Cancel);
-
-        this.LoadCommand = new AsyncRelayCommand(this.LoadAsync);
-        this.AddCommand = new AsyncRelayCommand(this.AddAsync);
-        this.DeleteCommand = new AsyncRelayCommand<IncomeLoss?>(this.DeleteAsync);
     }
 
     public IncomeLossViewModel(IIncomeLossService incomeLossService)
@@ -51,6 +37,7 @@ public sealed class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IH
     {
     }
 
+    [RelayCommand]
     public async Task LoadAsync()
     {
         if (this.IsBusy) return;
@@ -63,10 +50,7 @@ public sealed class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IH
             Application.Current?.Dispatcher.Invoke(() =>
             {
                 this.IncomeLosses.Clear();
-                foreach (var i in list)
-                {
-                    this.IncomeLosses.Add(i);
-                }
+                foreach (var i in list) this.IncomeLosses.Add(i);
             });
         }
         finally
@@ -75,9 +59,9 @@ public sealed class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IH
         }
     }
 
+    [RelayCommand]
     private async Task AddAsync()
     {
-        // open this VM as editor for convenience (use transient instance)
         var editor = new IncomeLossViewModel(this._incomeLossService, this._dialogService);
         var view = new IncomeLossEditView();
 
@@ -88,19 +72,17 @@ public sealed class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IH
         }
     }
 
+    [RelayCommand]
     private async Task DeleteAsync(IncomeLoss? item)
     {
         if (item is null) return;
 
         await this._incomeLossService.DeleteAsync(item.Id).ConfigureAwait(false);
 
-        Application.Current?.Dispatcher.Invoke(() =>
-        {
-            this.IncomeLosses.Remove(item);
-        });
+        Application.Current?.Dispatcher.Invoke(() => this.IncomeLosses.Remove(item));
     }
 
-    // Editor save
+    [RelayCommand]
     private async Task SaveAsync()
     {
         if (this.IsBusy) return;
@@ -109,14 +91,8 @@ public sealed class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IH
         {
             this.IsBusy = true;
 
-            if (this.Model.Id == 0)
-            {
-                await this._incomeLossService.AddAsync(this.Model).ConfigureAwait(false);
-            }
-            else
-            {
-                await this._incomeLossService.UpdateAsync(this.Model).ConfigureAwait(false);
-            }
+            if (this.Model.Id == 0) await this._incomeLossService.AddAsync(this.Model).ConfigureAwait(false);
+            else await this._incomeLossService.UpdateAsync(this.Model).ConfigureAwait(false);
 
             this.DialogResult = true;
             Application.Current?.Dispatcher.Invoke(() => this.CloseRequested?.Invoke(this, EventArgs.Empty));
@@ -127,13 +103,14 @@ public sealed class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IH
         }
     }
 
+    [RelayCommand]
     private void Cancel()
     {
         this.DialogResult = false;
         Application.Current?.Dispatcher.Invoke(() => this.CloseRequested?.Invoke(this, EventArgs.Empty));
     }
 
-    // Compute net adjustment (AmountLost - RefundAmount) for the given months
+    // Compute method unchanged
     public decimal ComputeAdjustmentForMonths(params (int Year, int Month)[] months)
     {
         if (months is null || months.Length == 0) return 0m;

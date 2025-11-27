@@ -15,7 +15,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Top bar: actions + current totals -->
+        <!-- Top bar: actions + current totals and month navigation -->
         <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,8">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                 <Button Content="Add Transaction" Command="{Binding AddTransactionCommand}" Margin="0,0,8,0"/>
@@ -25,12 +25,21 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="0,0,4,0">
-                <TextBlock Text="Income:" FontWeight="Bold" Margin="0,0,4,0"/>
-                <TextBlock Text="{Binding IncomeTotal, StringFormat=C}" Margin="0,0,12,0"/>
-                <TextBlock Text="Expense:" FontWeight="Bold" Margin="0,0,4,0"/>
-                <TextBlock Text="{Binding ExpenseTotal, StringFormat=C}" Margin="0,0,12,0"/>
-                <TextBlock Text="Net:" FontWeight="Bold" Margin="0,0,4,0"/>
-                <TextBlock Text="{Binding NetTotal, StringFormat=C}" />
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Button Content="◀" Command="{Binding PrevMonthCommand}" Width="28" Margin="0,0,6,0"/>
+                    <TextBlock Text="{Binding SelectedMonthLabel}" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,6,0"/>
+                    <Button Content="▶" Command="{Binding NextMonthCommand}" Width="28" Margin="0,0,6,0"/>
+                    <Button Content="Today" Command="{Binding GoToCurrentMonthCommand}" Margin="0,0,6,0"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Income:" FontWeight="Bold" Margin="0,0,4,0"/>
+                    <TextBlock Text="{Binding IncomeTotal, StringFormat=C}" Margin="0,0,12,0"/>
+                    <TextBlock Text="Expense:" FontWeight="Bold" Margin="0,0,4,0"/>
+                    <TextBlock Text="{Binding ExpenseTotal, StringFormat=C}" Margin="0,0,12,0"/>
+                    <TextBlock Text="Net:" FontWeight="Bold" Margin="0,0,4,0"/>
+                    <TextBlock Text="{Binding NetTotal, StringFormat=C}" />
+                </StackPanel>
             </StackPanel>
         </DockPanel>
 
@@ -41,7 +50,7 @@
                 <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Left column: Transactions + Projected (projected occupies 1/3 of this column) -->
+            <!-- Left column: Transactions + Projected -->
             <Grid Grid.Column="0" Margin="0,0,8,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*"/>
@@ -49,7 +58,7 @@
                 </Grid.RowDefinitions>
 
                 <DataGrid Grid.Row="0"
-                          ItemsSource="{Binding Transactions}"
+                          ItemsSource="{Binding FilteredTransactions}"
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
                           SelectionMode="Single"

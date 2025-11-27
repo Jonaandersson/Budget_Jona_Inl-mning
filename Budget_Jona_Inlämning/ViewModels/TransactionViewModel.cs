@@ -5,13 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Budget_Jona_Inlämning.Models;
 using Budget_Jona_Inlämning.Services;
 using Budget_Jona_Inlämning.Views;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
-public sealed class TransactionViewModel : BaseViewModel
+public sealed partial class TransactionViewModel : BaseViewModel
 {
     private readonly ITransactionService _transactionService;
     private readonly ICategoryService _categoryService;
@@ -50,11 +51,6 @@ public sealed class TransactionViewModel : BaseViewModel
 
     public decimal NetTotal => this.IncomeTotal - this.ExpenseTotal;
 
-    public IRelayCommand LoadCommand { get; }
-    public IRelayCommand AddCommand { get; }
-    public IRelayCommand<Transaction?> EditCommand { get; }
-    public IRelayCommand<Transaction?> DeleteCommand { get; }
-
     public TransactionViewModel(
         ITransactionService transactionService,
         ICategoryService categoryService,
@@ -65,13 +61,9 @@ public sealed class TransactionViewModel : BaseViewModel
         this._categoryService = categoryService;
         this._dialogService = dialogService;
         this._editorFactory = editorFactory;
-
-        this.LoadCommand = new AsyncRelayCommand(this.LoadAsync);
-        this.AddCommand = new AsyncRelayCommand(this.AddAsync);
-        this.EditCommand = new AsyncRelayCommand<Transaction?>(this.EditAsync);
-        this.DeleteCommand = new AsyncRelayCommand<Transaction?>(this.DeleteAsync);
     }
 
+    [RelayCommand]
     public async Task LoadAsync()
     {
         if (this.IsBusy) return;
@@ -79,17 +71,12 @@ public sealed class TransactionViewModel : BaseViewModel
         try
         {
             this.IsBusy = true;
-
-            // service call off UI thread is fine; update collection on UI thread
             var list = await this._transactionService.GetAllAsync().ConfigureAwait(false);
 
             Application.Current?.Dispatcher.Invoke(() =>
             {
                 this.Transactions.Clear();
-                foreach (var t in list)
-                {
-                    this.Transactions.Add(t);
-                }
+                foreach (var t in list) this.Transactions.Add(t);
             });
 
             this.IncomeTotal = this.Transactions.Where(t => t.IsIncome).Sum(t => t.Amount);
@@ -101,22 +88,18 @@ public sealed class TransactionViewModel : BaseViewModel
         }
     }
 
+    [RelayCommand]
     private async Task AddAsync()
     {
-        // create a fresh editor VM via factory (transient)
         var editor = this._editorFactory();
-
-        // Load categories — keep synchronization context so UI update is effective
         await editor.LoadCategoriesAsync();
 
         var view = new TransactionEditView();
         var result = await this._dialogService.ShowDialogAsync(view, editor);
-        if (result == true)
-        {
-            await this.LoadAsync();
-        }
+        if (result == true) await this.LoadAsync();
     }
 
+    [RelayCommand]
     private async Task EditAsync(Transaction? t)
     {
         if (t is null) return;
@@ -139,12 +122,10 @@ public sealed class TransactionViewModel : BaseViewModel
 
         var view = new TransactionEditView();
         var result = await this._dialogService.ShowDialogAsync(view, editor);
-        if (result == true)
-        {
-            await this.LoadAsync();
-        }
+        if (result == true) await this.LoadAsync();
     }
 
+    [RelayCommand]
     private async Task DeleteAsync(Transaction? t)
     {
         if (t is null) return;
@@ -154,10 +135,7 @@ public sealed class TransactionViewModel : BaseViewModel
 
         await this._transactionService.DeleteAsync(t.Id).ConfigureAwait(false);
 
-        Application.Current?.Dispatcher.Invoke(() =>
-        {
-            this.Transactions.Remove(t);
-        });
+        Application.Current?.Dispatcher.Invoke(() => this.Transactions.Remove(t));
 
         this.IncomeTotal = this.Transactions.Where(x => x.IsIncome).Sum(x => x.Amount);
         this.ExpenseTotal = this.Transactions.Where(x => !x.IsIncome).Sum(x => x.Amount);

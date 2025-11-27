@@ -9,26 +9,24 @@ using Budget_Jona_Inlämning.Services;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
-public sealed class CategoryEditorViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
+public sealed partial class CategoryEditorViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
 {
     private readonly ICategoryService _categoryService;
 
     public event EventHandler? CloseRequested;
 
-    public Category Model { get; } = new();
-
-    public IRelayCommand SaveCommand { get; }
-    public IRelayCommand CancelCommand { get; }
+    // Generated property: public Category Model { get; set; }
+    [ObservableProperty]
+    private Category model = new();
 
     public bool? DialogResult { get; private set; }
 
     public CategoryEditorViewModel(ICategoryService categoryService)
     {
         this._categoryService = categoryService;
-        this.SaveCommand = new AsyncRelayCommand(this.SaveAsync);
-        this.CancelCommand = new RelayCommand(this.Cancel);
     }
 
+    [RelayCommand]
     private async Task SaveAsync()
     {
         if (this.IsBusy) return;
@@ -55,6 +53,7 @@ public sealed class CategoryEditorViewModel : BaseViewModel, IDialogRequestClose
         }
     }
 
+    [RelayCommand]
     private void Cancel()
     {
         this.DialogResult = false;
