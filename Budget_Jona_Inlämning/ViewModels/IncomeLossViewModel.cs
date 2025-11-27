@@ -1,0 +1,144 @@
+﻿#nullable enable
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Budget_Jona_Inlämning.Models;
+using Budget_Jona_Inlämning.Services;
+using Budget_Jona_Inlämning.Views;
+
+namespace Budget_Jona_Inlämning.ViewModels;
+
+public sealed class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
+{
+    private readonly IIncomeLossService _incomeLossService;
+    private readonly IDialogService _dialogService;
+
+    public IncomeLoss Model { get; }
+
+    public ObservableCollection<IncomeLoss> IncomeLosses { get; } = new();
+
+    public IRelayCommand SaveCommand { get; }
+    public IRelayCommand CancelCommand { get; }
+
+    public IRelayCommand LoadCommand { get; }
+    public IRelayCommand AddCommand { get; }
+    public IRelayCommand<IncomeLoss?> DeleteCommand { get; }
+
+    public event EventHandler? CloseRequested;
+    public bool? DialogResult { get; private set; }
+
+    public IncomeLossViewModel(IIncomeLossService incomeLossService, IDialogService dialogService)
+    {
+        this._incomeLossService = incomeLossService;
+        this._dialogService = dialogService;
+
+        this.Model = new IncomeLoss { Date = DateTime.Today, RefundPercentage = 0.80m };
+
+        this.SaveCommand = new AsyncRelayCommand(this.SaveAsync);
+        this.CancelCommand = new RelayCommand(this.Cancel);
+
+        this.LoadCommand = new AsyncRelayCommand(this.LoadAsync);
+        this.AddCommand = new AsyncRelayCommand(this.AddAsync);
+        this.DeleteCommand = new AsyncRelayCommand<IncomeLoss?>(this.DeleteAsync);
+    }
+
+    public IncomeLossViewModel(IIncomeLossService incomeLossService)
+        : this(incomeLossService, null!)
+    {
+    }
+
+    public async Task LoadAsync()
+    {
+        if (this.IsBusy) return;
+
+        try
+        {
+            this.IsBusy = true;
+            var list = await this._incomeLossService.GetAllAsync().ConfigureAwait(false);
+
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                this.IncomeLosses.Clear();
+                foreach (var i in list)
+                {
+                    this.IncomeLosses.Add(i);
+                }
+            });
+        }
+        finally
+        {
+            this.IsBusy = false;
+        }
+    }
+
+    private async Task AddAsync()
+    {
+        // open this VM as editor for convenience (use transient instance)
+        var editor = new IncomeLossViewModel(this._incomeLossService, this._dialogService);
+        var view = new IncomeLossEditView();
+
+        var result = await this._dialogService.ShowDialogAsync(view, editor);
+        if (result == true)
+        {
+            await this.LoadAsync();
+        }
+    }
+
+    private async Task DeleteAsync(IncomeLoss? item)
+    {
+        if (item is null) return;
+
+        await this._incomeLossService.DeleteAsync(item.Id).ConfigureAwait(false);
+
+        Application.Current?.Dispatcher.Invoke(() =>
+        {
+            this.IncomeLosses.Remove(item);
+        });
+    }
+
+    // Editor save
+    private async Task SaveAsync()
+    {
+        if (this.IsBusy) return;
+
+        try
+        {
+            this.IsBusy = true;
+
+            if (this.Model.Id == 0)
+            {
+                await this._incomeLossService.AddAsync(this.Model).ConfigureAwait(false);
+            }
+            else
+            {
+                await this._incomeLossService.UpdateAsync(this.Model).ConfigureAwait(false);
+            }
+
+            this.DialogResult = true;
+            Application.Current?.Dispatcher.Invoke(() => this.CloseRequested?.Invoke(this, EventArgs.Empty));
+        }
+        finally
+        {
+            this.IsBusy = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        this.DialogResult = false;
+        Application.Current?.Dispatcher.Invoke(() => this.CloseRequested?.Invoke(this, EventArgs.Empty));
+    }
+
+    // Compute net adjustment (AmountLost - RefundAmount) for the given months
+    public decimal ComputeAdjustmentForMonths(params (int Year, int Month)[] months)
+    {
+        if (months is null || months.Length == 0) return 0m;
+
+        var set = months.ToHashSet();
+        return this.IncomeLosses.Where(i => set.Contains((i.Date.Year, i.Date.Month))).Sum(i => (i.AmountLost - i.RefundAmount));
+    }
+}

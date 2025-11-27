@@ -1,0 +1,124 @@
+﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="Budget_Jona_Inlämning.Views.OverviewView">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top bar: actions + current totals -->
+        <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,8">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <Button Content="Add Transaction" Command="{Binding AddTransactionCommand}" Margin="0,0,8,0"/>
+                <Button Content="Add IncomeLoss" Command="{Binding AddIncomeLossCommand}" Margin="0,0,8,0"/>
+                <Button Content="Add Category" Command="{Binding AddCategoryCommand}" Margin="0,0,8,0"/>
+                <Button Content="Refresh" Command="{Binding LoadCommand}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="0,0,4,0">
+                <TextBlock Text="Income:" FontWeight="Bold" Margin="0,0,4,0"/>
+                <TextBlock Text="{Binding IncomeTotal, StringFormat=C}" Margin="0,0,12,0"/>
+                <TextBlock Text="Expense:" FontWeight="Bold" Margin="0,0,4,0"/>
+                <TextBlock Text="{Binding ExpenseTotal, StringFormat=C}" Margin="0,0,12,0"/>
+                <TextBlock Text="Net:" FontWeight="Bold" Margin="0,0,4,0"/>
+                <TextBlock Text="{Binding NetTotal, StringFormat=C}" />
+            </StackPanel>
+        </DockPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left column: Transactions + Projected (projected occupies 1/3 of this column) -->
+            <Grid Grid.Column="0" Margin="0,0,8,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <!-- Transactions (2/3) -->
+                    <RowDefinition Height="*"/>
+                    <!-- Projection (1/3) -->
+                </Grid.RowDefinitions>
+
+                <DataGrid Grid.Row="0"
+                          ItemsSource="{Binding Transactions}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=d}" Width="120"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category.Name}" Width="150"/>
+                        <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat=C}" Width="100"/>
+                        <DataGridCheckBoxColumn Header="Income" Binding="{Binding IsIncome}" Width="70"/>
+                        <DataGridCheckBoxColumn Header="Monthly" Binding="{Binding IsMonthly}" Width="70"/>
+                        <DataGridTemplateColumn Header="Actions" Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="Edit" Command="{Binding DataContext.EditTransactionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,8,0"/>
+                                        <Button Content="Delete" Command="{Binding DataContext.DeleteTransactionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Projected panel placed under transactions, taking 1/3 of left column -->
+                <Border Grid.Row="1" Padding="8" Margin="0,8,0,0" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Background="#FFF">
+                    <StackPanel>
+                        <TextBlock Text="Projected (next month)" FontWeight="Bold" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBlock Text="Income:" FontWeight="Bold" Margin="0,0,4,0"/>
+                            <TextBlock Text="{Binding ProjectedIncome, StringFormat=C}" Margin="0,0,12,0"/>
+                            <TextBlock Text="Expense:" FontWeight="Bold" Margin="0,0,4,0"/>
+                            <TextBlock Text="{Binding ProjectedExpense, StringFormat=C}" Margin="0,0,12,0"/>
+                            <TextBlock Text="Net:" FontWeight="Bold" Margin="0,0,4,0"/>
+                            <TextBlock Text="{Binding ProjectedNet, StringFormat=C}" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding IncomeLossAdjustment, StringFormat='IncomeLoss adjustment: {0:C}'}" HorizontalAlignment="Right" FontStyle="Italic" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Separator Grid.Column="1" VerticalAlignment="Stretch" Margin="4,0"/>
+
+            <!-- Categories panel -->
+            <GroupBox Header="Categories" Grid.Column="2" Margin="8,0,0,0">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <Button Content="Add" Command="{Binding AddCategoryCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Refresh" Command="{Binding LoadCommand}"/>
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding Categories}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                            <DataGridTemplateColumn Header="Actions" Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Edit" Command="{Binding DataContext.EditCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,8,0"/>
+                                            <Button Content="Delete" Command="{Binding DataContext.DeleteCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</UserControl>

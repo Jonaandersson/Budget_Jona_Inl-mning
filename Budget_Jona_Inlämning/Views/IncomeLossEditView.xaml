@@ -1,0 +1,39 @@
+﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Budget_Jona_Inlämning.Views.IncomeLossEditView">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Date:" Width="100" VerticalAlignment="Center"/>
+            <DatePicker SelectedDate="{Binding Model.Date, Mode=TwoWay}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
+            <TextBlock Text="Amount Lost:" Width="100" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding Model.AmountLost, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Width="150"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
+            <TextBlock Text="Lost Days:" Width="100" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding Model.LostDays, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,8">
+            <TextBlock Text="Refund %:" Width="100" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding Model.RefundPercentage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Width="80"/>
+            <TextBlock Text="{Binding Model.RefundAmount, StringFormat=' Refund: {0:C}'}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="4" HorizontalAlignment="Right">
+            <Button Content="Save" Command="{Binding SaveCommand}" Margin="0,0,8,0"/>
+            <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
