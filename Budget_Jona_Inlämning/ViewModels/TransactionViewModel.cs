@@ -1,19 +1,21 @@
 ﻿#nullable enable
+using Budget_Jona_Inlämning.Models;
+using Budget_Jona_Inlämning.Services;
+using Budget_Jona_Inlämning.Views;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using Budget_Jona_Inlämning.Models;
-using Budget_Jona_Inlämning.Services;
-using Budget_Jona_Inlämning.Views;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 /// <summary>
-/// Represents the view model for managing and displaying a collection of financial transactions, including support for
-/// loading, adding, editing, and deleting transactions within the application's user interface.
+//  Represents the view model for managing and displaying a collection of financial transactions, including support for
+//  loading, adding, editing, and deleting transactions within the application's user interface.
 /// </summary>
 /// <remarks>TransactionViewModel provides properties and commands for interacting with transaction data,
 /// including calculating income, expenses, and net totals. It coordinates with services for data access, category
@@ -27,34 +29,15 @@ public sealed partial class TransactionViewModel : BaseViewModel
     private readonly Func<TransactionEditorViewModel> _editorFactory;
 
     public ObservableCollection<Transaction> Transactions { get; } = new();
-    public Transaction? SelectedTransaction { get; set; }
 
-    private decimal _incomeTotal;
-    private decimal _expenseTotal;
+    [ObservableProperty]
+    private Transaction? selectedTransaction;
 
-    public decimal IncomeTotal
-    {
-        get => this._incomeTotal;
-        private set
-        {
-            if (this.SetProperty(ref this._incomeTotal, value))
-            {
-                this.OnPropertyChanged(nameof(NetTotal));
-            }
-        }
-    }
+    [ObservableProperty]
+    private decimal incomeTotal;
 
-    public decimal ExpenseTotal
-    {
-        get => this._expenseTotal;
-        private set
-        {
-            if (this.SetProperty(ref this._expenseTotal, value))
-            {
-                this.OnPropertyChanged(nameof(NetTotal));
-            }
-        }
-    }
+    [ObservableProperty]
+    private decimal expenseTotal;
 
     public decimal NetTotal => this.IncomeTotal - this.ExpenseTotal;
 
@@ -68,6 +51,17 @@ public sealed partial class TransactionViewModel : BaseViewModel
         this._categoryService = categoryService;
         this._dialogService = dialogService;
         this._editorFactory = editorFactory;
+    }
+
+    // Keep behavior: when totals change, notify NetTotal
+    partial void OnIncomeTotalChanged(decimal value)
+    {
+        this.OnPropertyChanged(nameof(NetTotal));
+    }
+
+    partial void OnExpenseTotalChanged(decimal value)
+    {
+        this.OnPropertyChanged(nameof(NetTotal));
     }
 
     [RelayCommand]

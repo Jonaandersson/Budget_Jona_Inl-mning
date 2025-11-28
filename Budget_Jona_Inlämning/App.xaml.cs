@@ -73,7 +73,7 @@ public partial class App : Application
         try
         {
             using var scope = this._host.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.Migrate();
         }
         catch (Exception ex)
@@ -83,11 +83,11 @@ public partial class App : Application
 
         // Create a scope for application UI lifetime and resolve MainWindow from it
         this._appScope = this._host.Services.CreateScope();
-        var main = this._appScope.ServiceProvider.GetRequiredService<MainWindow>();
+        MainWindow main = this._appScope.ServiceProvider.GetRequiredService<MainWindow>();
         main.Show();
 
         // Load initial data via composed MainViewModel sequentially to avoid DbContext concurrency
-        var vm = this._appScope.ServiceProvider.GetService<MainViewModel>();
+        MainViewModel vm = this._appScope.ServiceProvider.GetService<MainViewModel>();
         if (vm is not null)
         {
             _ = Task.Run(async () => await vm.LoadAllAsync().ConfigureAwait(false));

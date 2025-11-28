@@ -24,7 +24,7 @@ public sealed partial class IncomeLossViewModel : BaseViewModel, IDialogRequestC
     private readonly IIncomeLossService _incomeLossService;
     private readonly IDialogService _dialogService;
 
-    
+
     [ObservableProperty]
     private IncomeLoss model = new IncomeLoss { Date = DateTime.Today, RefundPercentage = 0.80m };
 
@@ -101,8 +101,7 @@ public sealed partial class IncomeLossViewModel : BaseViewModel, IDialogRequestC
             if (this.Model.Id == 0) await this._incomeLossService.AddAsync(this.Model).ConfigureAwait(false);
             else await this._incomeLossService.UpdateAsync(this.Model).ConfigureAwait(false);
 
-            this.DialogResult = true;
-            Application.Current?.Dispatcher.Invoke(() => this.CloseRequested?.Invoke(this, EventArgs.Empty));
+            RequestClose(true);
         }
         finally
         {
@@ -113,16 +112,20 @@ public sealed partial class IncomeLossViewModel : BaseViewModel, IDialogRequestC
     [RelayCommand]
     private void Cancel()
     {
-        this.DialogResult = false;
-        Application.Current?.Dispatcher.Invoke(() => this.CloseRequested?.Invoke(this, EventArgs.Empty));
+        RequestClose(false);
     }
 
-    // Compute method unchanged
     public decimal ComputeAdjustmentForMonths(params (int Year, int Month)[] months)
     {
         if (months is null || months.Length == 0) return 0m;
 
         var set = months.ToHashSet();
         return this.IncomeLosses.Where(i => set.Contains((i.Date.Year, i.Date.Month))).Sum(i => (i.AmountLost - i.RefundAmount));
+    }
+
+    private void RequestClose(bool result)
+    {
+        this.DialogResult = result;
+        Application.Current?.Dispatcher.Invoke(() => this.CloseRequested?.Invoke(this, EventArgs.Empty));
     }
 }

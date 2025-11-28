@@ -28,7 +28,6 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly CategoryViewModel _categoriesVm;
     private readonly IncomeLossViewModel _incomeLossesVm;
 
-    // Projection values (generated properties)
     [ObservableProperty]
     private decimal projectedIncome;
 
@@ -41,9 +40,17 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private decimal incomeLossAdjustment;
 
-    // Selected month (generated property). Default to first day of current month.
     [ObservableProperty]
     private DateTime selectedMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    [ObservableProperty]
+    private ObservableCollection<Transaction> filteredTransactions = new();
+
+    [ObservableProperty]
+    private ObservableCollection<IncomeLoss> currentIncomeLosses = new();
+
+    [ObservableProperty]
+    private ObservableCollection<IncomeLoss> projectedIncomeLosses = new();
 
     public MainViewModel(
         TransactionViewModel transactionsVm,
@@ -54,7 +61,6 @@ public sealed partial class MainViewModel : ObservableObject
         this._categoriesVm = categoriesVm;
         this._incomeLossesVm = incomeLossesVm;
 
-        // Forward property-changed from child VMs so UI bound to MainViewModel updates
         if (this._transactionsVm is INotifyPropertyChanged txNotify)
         {
             txNotify.PropertyChanged += this.Child_PropertyChanged;
@@ -70,11 +76,7 @@ public sealed partial class MainViewModel : ObservableObject
             ilNotify.PropertyChanged += this.Child_PropertyChanged;
         }
 
-        // React to collection changes in transactions so filtered view updates
         this._transactionsVm.Transactions.CollectionChanged += this.Transactions_CollectionChanged;
-
-        this.CurrentIncomeLosses = new ObservableCollection<IncomeLoss>();
-        this.ProjectedIncomeLosses = new ObservableCollection<IncomeLoss>();
     }
 
     partial void OnSelectedMonthChanged(DateTime value)
@@ -85,14 +87,10 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void Transactions_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        // Update filtered view on UI thread
         this.UpdateFilteredTransactions();
     }
 
-    // Expose collections and properties expected by existing views (wrappers)
     public ObservableCollection<Transaction> Transactions => this._transactionsVm.Transactions;
-
-    public ObservableCollection<Transaction> FilteredTransactions { get; } = new();
 
     public Transaction? SelectedTransaction
     {
@@ -103,19 +101,12 @@ public sealed partial class MainViewModel : ObservableObject
     public ObservableCollection<Category> Categories => this._categoriesVm.Categories;
     public ObservableCollection<IncomeLoss> IncomeLosses => this._incomeLossesVm.IncomeLosses;
 
-    // Lists to present income-loss details
-    public ObservableCollection<IncomeLoss> CurrentIncomeLosses { get; }
-    public ObservableCollection<IncomeLoss> ProjectedIncomeLosses { get; }
-
-    // Totals forwarded from Transactions VM
     public decimal IncomeTotal => this._transactionsVm.IncomeTotal;
     public decimal ExpenseTotal => this._transactionsVm.ExpenseTotal;
     public decimal NetTotal => this.IncomeTotal - this.ExpenseTotal;
 
-    // Friendly label for UI
     public string SelectedMonthLabel => this.SelectedMonth.ToString("MMMM yyyy");
 
-    // Load child VMs sequentially to avoid DbContext concurrency issues
     [RelayCommand]
     public async Task LoadAllAsync()
     {
@@ -158,7 +149,7 @@ public sealed partial class MainViewModel : ObservableObject
             .OrderByDescending(i => i.Date)
             .ToList();
 
-        // Net adjustment (AmountLost - RefundAmount)
+        // (AmountLost - RefundAmount)
         Decimal adjustment = this._incomeLossesVm.ComputeAdjustmentForMonths(currentMonthSet, nextMonthSet);
         Decimal netLoss = Math.Max(0m, adjustment);
 
@@ -167,7 +158,7 @@ public sealed partial class MainViewModel : ObservableObject
         this.ProjectedExpense = recurringExpense + oneTimeExpenseNext;
         this.ProjectedNet = this.ProjectedIncome - this.ProjectedExpense;
 
-        // Update collections on UI thread
+        // Update collections on UI 
         Application.Current?.Dispatcher.Invoke(() =>
         {
             this.CurrentIncomeLosses.Clear();
@@ -178,7 +169,7 @@ public sealed partial class MainViewModel : ObservableObject
         });
     }
 
-    // Update filtered transactions for the currently selected month
+    // Update filtered transactions for the current month
     private void UpdateFilteredTransactions()
     {
         Int32 year = this.SelectedMonth.Year;
@@ -195,7 +186,7 @@ public sealed partial class MainViewModel : ObservableObject
             foreach (Transaction t in items) this.FilteredTransactions.Add(t);
         });
 
-        // totals may change visually -> notify
+        // totals may change visually. notify
         this.OnPropertyChanged(nameof(this.IncomeTotal));
         this.OnPropertyChanged(nameof(this.ExpenseTotal));
         this.OnPropertyChanged(nameof(this.NetTotal));
@@ -204,19 +195,22 @@ public sealed partial class MainViewModel : ObservableObject
     private void Child_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         // If transactions totals change, notify UI
-        if (e.PropertyName is "IncomeTotal" or "ExpenseTotal" or "Transactions" or "SelectedTransaction")
+        if (e.PropertyName is nameof(TransactionViewModel.IncomeTotal)
+            or nameof(TransactionViewModel.ExpenseTotal)
+            or nameof(TransactionViewModel.Transactions)
+            or nameof(TransactionViewModel.SelectedTransaction))
         {
             this.NotifyTotals();
         }
 
         // If income-loss list changed, recompute projections and lists
-        if (e.PropertyName is "IncomeLosses")
+        if (e.PropertyName is nameof(IncomeLossViewModel.IncomeLosses))
         {
             this.ComputeProjections();
         }
 
         // If categories changed, raise categories change
-        if (e.PropertyName is "Categories")
+        if (e.PropertyName is nameof(CategoryViewModel.Categories))
         {
             this.OnPropertyChanged(nameof(this.Categories));
         }
@@ -229,53 +223,59 @@ public sealed partial class MainViewModel : ObservableObject
         this.OnPropertyChanged(nameof(this.NetTotal));
     }
 
+    // Helper to invoke child VM commands (reduces duplicated pattern)
+    private static async Task ExecuteVmCommandAsync(object? commandObj, object? parameter = null)
+    {
+        if (commandObj is IAsyncRelayCommand asyncCmd)
+        {
+            await asyncCmd.ExecuteAsync(parameter).ConfigureAwait(false);
+        }
+        else if (commandObj is System.Windows.Input.ICommand cmd)
+        {
+            cmd.Execute(parameter);
+        }
+    }
+
     [RelayCommand]
     private async Task AddTransactionAsync()
     {
-        if (this._transactionsVm.AddCommand is IAsyncRelayCommand a) await a.ExecuteAsync(null);
-        else this._transactionsVm.AddCommand.Execute(null);
+        await ExecuteVmCommandAsync(this._transactionsVm.AddCommand, null).ConfigureAwait(false);
     }
 
     [RelayCommand]
     private async Task EditTransactionAsync(Transaction? t)
     {
-        if (this._transactionsVm.EditCommand is IAsyncRelayCommand a) await a.ExecuteAsync(t);
-        else this._transactionsVm.EditCommand.Execute(t);
+        await ExecuteVmCommandAsync(this._transactionsVm.EditCommand, t).ConfigureAwait(false);
     }
 
     [RelayCommand]
     private async Task DeleteTransactionAsync(Transaction? t)
     {
-        if (this._transactionsVm.DeleteCommand is IAsyncRelayCommand a) await a.ExecuteAsync(t);
-        else this._transactionsVm.DeleteCommand.Execute(t);
+        await ExecuteVmCommandAsync(this._transactionsVm.DeleteCommand, t).ConfigureAwait(false);
     }
 
     [RelayCommand]
     private async Task AddCategoryAsync()
     {
-        if (this._categoriesVm.AddCommand is IAsyncRelayCommand a) await a.ExecuteAsync(null);
-        else this._categoriesVm.AddCommand.Execute(null);
+        await ExecuteVmCommandAsync(this._categoriesVm.AddCommand, null).ConfigureAwait(false);
     }
 
     [RelayCommand]
     private async Task EditCategoryAsync(Category? c)
     {
-        if (this._categoriesVm.EditCommand is IAsyncRelayCommand a) await a.ExecuteAsync(c);
-        else this._categoriesVm.EditCommand.Execute(c);
+        await ExecuteVmCommandAsync(this._categoriesVm.EditCommand, c).ConfigureAwait(false);
     }
 
     [RelayCommand]
     private async Task DeleteCategoryAsync(Category? c)
     {
-        if (this._categoriesVm.DeleteCommand is IAsyncRelayCommand a) await a.ExecuteAsync(c);
-        else this._categoriesVm.DeleteCommand.Execute(c);
+        await ExecuteVmCommandAsync(this._categoriesVm.DeleteCommand, c).ConfigureAwait(false);
     }
 
     [RelayCommand]
     private async Task AddIncomeLossAsync()
     {
-        if (this._incomeLossesVm.AddCommand is IAsyncRelayCommand a) await a.ExecuteAsync(null);
-        else this._incomeLossesVm.AddCommand.Execute(null);
+        await ExecuteVmCommandAsync(this._incomeLossesVm.AddCommand, null).ConfigureAwait(false);
     }
 
     [RelayCommand]

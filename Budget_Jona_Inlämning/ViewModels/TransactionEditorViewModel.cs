@@ -113,9 +113,7 @@ public sealed partial class TransactionEditorViewModel : BaseViewModel, IDialogR
                 await this._transactionService.UpdateAsync(this.Model).ConfigureAwait(false);
             }
 
-            this.DialogResult = true;
-            // raise CloseRequested on UI thread
-            Application.Current?.Dispatcher.Invoke(() => this.CloseRequested?.Invoke(this, EventArgs.Empty));
+            RequestClose(true);
         }
         finally
         {
@@ -126,7 +124,12 @@ public sealed partial class TransactionEditorViewModel : BaseViewModel, IDialogR
     [RelayCommand]
     private void Cancel()
     {
-        this.DialogResult = false;
+        RequestClose(false);
+    }
+
+    private void RequestClose(bool result)
+    {
+        this.DialogResult = result;
         Application.Current?.Dispatcher.Invoke(() => this.CloseRequested?.Invoke(this, EventArgs.Empty));
     }
 }
