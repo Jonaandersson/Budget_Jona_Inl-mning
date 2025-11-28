@@ -11,7 +11,14 @@ using Budget_Jona_Inlämning.Services;
 using Budget_Jona_Inlämning.Views;
 
 namespace Budget_Jona_Inlämning.ViewModels;
-
+/// <summary>
+/// Represents the view model for managing and displaying a collection of financial transactions, including support for
+/// loading, adding, editing, and deleting transactions within the application's user interface.
+/// </summary>
+/// <remarks>TransactionViewModel provides properties and commands for interacting with transaction data,
+/// including calculating income, expenses, and net totals. It coordinates with services for data access, category
+/// management, and dialog presentation. This view model is typically used in MVVM scenarios to bind transaction data to
+/// UI elements and handle user actions related to transaction management.</remarks>
 public sealed partial class TransactionViewModel : BaseViewModel
 {
     private readonly ITransactionService _transactionService;
@@ -71,12 +78,12 @@ public sealed partial class TransactionViewModel : BaseViewModel
         try
         {
             this.IsBusy = true;
-            var list = await this._transactionService.GetAllAsync().ConfigureAwait(false);
+            List<Transaction> list = await this._transactionService.GetAllAsync().ConfigureAwait(false);
 
             Application.Current?.Dispatcher.Invoke(() =>
             {
                 this.Transactions.Clear();
-                foreach (var t in list) this.Transactions.Add(t);
+                foreach (Transaction t in list) this.Transactions.Add(t);
             });
 
             this.IncomeTotal = this.Transactions.Where(t => t.IsIncome).Sum(t => t.Amount);
@@ -91,11 +98,11 @@ public sealed partial class TransactionViewModel : BaseViewModel
     [RelayCommand]
     private async Task AddAsync()
     {
-        var editor = this._editorFactory();
+        TransactionEditorViewModel editor = this._editorFactory();
         await editor.LoadCategoriesAsync();
 
-        var view = new TransactionEditView();
-        var result = await this._dialogService.ShowDialogAsync(view, editor);
+        TransactionEditView view = new TransactionEditView();
+        Nullable<bool> result = await this._dialogService.ShowDialogAsync(view, editor);
         if (result == true) await this.LoadAsync();
     }
 
@@ -104,10 +111,10 @@ public sealed partial class TransactionViewModel : BaseViewModel
     {
         if (t is null) return;
 
-        var entity = await this._transactionService.GetByIdAsync(t.Id).ConfigureAwait(false);
+        Transaction entity = await this._transactionService.GetByIdAsync(t.Id).ConfigureAwait(false);
         if (entity is null) return;
 
-        var editor = this._editorFactory();
+        TransactionEditorViewModel editor = this._editorFactory();
 
         // populate editor model
         editor.Model.Id = entity.Id;
@@ -120,8 +127,8 @@ public sealed partial class TransactionViewModel : BaseViewModel
 
         await editor.LoadCategoriesAsync();
 
-        var view = new TransactionEditView();
-        var result = await this._dialogService.ShowDialogAsync(view, editor);
+        TransactionEditView view = new TransactionEditView();
+        Nullable<bool> result = await this._dialogService.ShowDialogAsync(view, editor);
         if (result == true) await this.LoadAsync();
     }
 
@@ -130,7 +137,7 @@ public sealed partial class TransactionViewModel : BaseViewModel
     {
         if (t is null) return;
 
-        var answer = MessageBox.Show($"Delete transaction '{t.Description}'?", "Confirm delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        MessageBoxResult answer = MessageBox.Show($"Delete transaction '{t.Description}'?", "Confirm delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (answer != MessageBoxResult.Yes) return;
 
         await this._transactionService.DeleteAsync(t.Id).ConfigureAwait(false);

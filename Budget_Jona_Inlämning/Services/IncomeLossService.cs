@@ -7,6 +7,7 @@ using Budget_Jona_Inlämning.Models;
 
 namespace Budget_Jona_Inlämning.Services;
 
+
 public class IncomeLossService : IIncomeLossService
 {
     private readonly AppDbContext _context;
@@ -44,7 +45,7 @@ public class IncomeLossService : IIncomeLossService
 
     public async Task DeleteAsync(int id)
     {
-        var entity = await this._context.IncomeLosses.FindAsync(id).ConfigureAwait(false);
+        IncomeLoss entity = await this._context.IncomeLosses.FindAsync(id).ConfigureAwait(false);
         if (entity is null)
         {
             return;

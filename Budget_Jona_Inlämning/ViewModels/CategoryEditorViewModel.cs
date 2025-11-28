@@ -9,13 +9,22 @@ using Budget_Jona_Inlämning.Services;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
+/// <summary>
+/// Represents the view model for editing a category, providing properties and commands to manage category data and
+/// dialog interactions.
+/// </summary>
+/// <remarks>This view model coordinates the editing workflow for a category, including saving changes and
+/// handling dialog closure requests. It exposes commands for saving and canceling edits, and raises the <see
+/// cref="CloseRequested"/> event to signal when the dialog should be closed. The <see cref="DialogResult"/> property
+/// indicates the outcome of the dialog operation. This class is intended for use in UI scenarios where category data is
+/// edited within a modal dialog.</remarks>
 public sealed partial class CategoryEditorViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
 {
     private readonly ICategoryService _categoryService;
 
     public event EventHandler? CloseRequested;
 
-    // Generated property: public Category Model { get; set; }
+    
     [ObservableProperty]
     private Category model = new();
 

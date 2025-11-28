@@ -1,15 +1,13 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Focus visual used by several controls -->
+    <!--Border-->
     <Style x:Key="FocusBorderStyle" TargetType="Border">
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="BorderThickness" Value="2" />
     </Style>
 
-    <!-- Enhance implicit Button style with subtle elevation on primary -->
-    <!-- (Your existing implicit Button remains; primary variant uses this behavior.) -->
-    <!-- Primary button update (BasedOn existing Button style) -->
+    <!--button-->
     <Style x:Key="ButtonPrimaryStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="White" />
@@ -35,7 +33,7 @@
         </Style.Triggers>
     </Style>
 
-    <!-- TextBox: clear focus border and slight inner shadow -->
+    <!-- TextBox-->
     <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
         <Setter Property="Padding" Value="8,6" />
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />

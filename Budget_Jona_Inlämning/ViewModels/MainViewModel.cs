@@ -12,6 +12,16 @@ using Budget_Jona_Inlämning.Models;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
+/// <summary>
+/// Represents the main view model for the application's dashboard, providing access to transactions, categories,
+/// income/loss data, and projection calculations for the selected month. Serves as the central data context for UI
+/// views, aggregating and coordinating child view models.
+/// </summary>
+/// <remarks>MainViewModel exposes collections and properties for binding in UI views, including filtered
+/// transactions, category lists, and income/loss details. It coordinates loading and updating of child view models to
+/// ensure data consistency and UI responsiveness. Projection properties are automatically updated when underlying data
+/// changes. All property and collection changes are dispatched to the UI thread to maintain thread safety for UI-bound
+/// data. Sequential loading of child view models is performed to avoid database concurrency issues.</remarks>
 public sealed partial class MainViewModel : ObservableObject
 {
     private readonly TransactionViewModel _transactionsVm;
@@ -124,33 +134,33 @@ public sealed partial class MainViewModel : ObservableObject
 
     private void ComputeProjections()
     {
-        var today = DateTime.Today;
-        var nextMonth = new DateTime(today.Year, today.Month, 1).AddMonths(1);
+        DateTime today = DateTime.Today;
+        DateTime nextMonth = new DateTime(today.Year, today.Month, 1).AddMonths(1);
 
-        var recurringIncome = this._transactionsVm.Transactions.Where(t => t.IsMonthly && t.IsIncome).Sum(t => t.Amount);
-        var recurringExpense = this._transactionsVm.Transactions.Where(t => t.IsMonthly && !t.IsIncome).Sum(t => t.Amount);
+        Decimal recurringIncome = this._transactionsVm.Transactions.Where(t => t.IsMonthly && t.IsIncome).Sum(t => t.Amount);
+        Decimal recurringExpense = this._transactionsVm.Transactions.Where(t => t.IsMonthly && !t.IsIncome).Sum(t => t.Amount);
 
-        var oneTimeIncomeNext = this._transactionsVm.Transactions.Where(t => !t.IsMonthly && t.IsIncome && t.Date.Year == nextMonth.Year && t.Date.Month == nextMonth.Month).Sum(t => t.Amount);
-        var oneTimeExpenseNext = this._transactionsVm.Transactions.Where(t => !t.IsMonthly && !t.IsIncome && t.Date.Year == nextMonth.Year && t.Date.Month == nextMonth.Month).Sum(t => t.Amount);
+        Decimal oneTimeIncomeNext = this._transactionsVm.Transactions.Where(t => !t.IsMonthly && t.IsIncome && t.Date.Year == nextMonth.Year && t.Date.Month == nextMonth.Month).Sum(t => t.Amount);
+        Decimal oneTimeExpenseNext = this._transactionsVm.Transactions.Where(t => !t.IsMonthly && !t.IsIncome && t.Date.Year == nextMonth.Year && t.Date.Month == nextMonth.Month).Sum(t => t.Amount);
 
         // Refresh IncomeLoss lists for current/next month
-        var todayDate = DateTime.Today;
+        DateTime todayDate = DateTime.Today;
         var currentMonthSet = (todayDate.Year, todayDate.Month);
         var nextMonthSet = (nextMonth.Year, nextMonth.Month);
 
-        var currentItems = this._incomeLossesVm.IncomeLosses
+        List<IncomeLoss> currentItems = this._incomeLossesVm.IncomeLosses
             .Where(i => (i.Date.Year, i.Date.Month) == currentMonthSet)
             .OrderByDescending(i => i.Date)
             .ToList();
 
-        var projectedItems = this._incomeLossesVm.IncomeLosses
+        List<IncomeLoss> projectedItems = this._incomeLossesVm.IncomeLosses
             .Where(i => (i.Date.Year, i.Date.Month) == nextMonthSet || (i.Date.Year, i.Date.Month) == currentMonthSet)
             .OrderByDescending(i => i.Date)
             .ToList();
 
         // Net adjustment (AmountLost - RefundAmount)
-        var adjustment = this._incomeLossesVm.ComputeAdjustmentForMonths(currentMonthSet, nextMonthSet);
-        var netLoss = Math.Max(0m, adjustment);
+        Decimal adjustment = this._incomeLossesVm.ComputeAdjustmentForMonths(currentMonthSet, nextMonthSet);
+        Decimal netLoss = Math.Max(0m, adjustment);
 
         this.IncomeLossAdjustment = netLoss;
         this.ProjectedIncome = recurringIncome + oneTimeIncomeNext - netLoss;
@@ -161,20 +171,20 @@ public sealed partial class MainViewModel : ObservableObject
         Application.Current?.Dispatcher.Invoke(() =>
         {
             this.CurrentIncomeLosses.Clear();
-            foreach (var i in currentItems) this.CurrentIncomeLosses.Add(i);
+            foreach (IncomeLoss i in currentItems) this.CurrentIncomeLosses.Add(i);
 
             this.ProjectedIncomeLosses.Clear();
-            foreach (var i in projectedItems) this.ProjectedIncomeLosses.Add(i);
+            foreach (IncomeLoss i in projectedItems) this.ProjectedIncomeLosses.Add(i);
         });
     }
 
     // Update filtered transactions for the currently selected month
     private void UpdateFilteredTransactions()
     {
-        var year = this.SelectedMonth.Year;
-        var month = this.SelectedMonth.Month;
+        Int32 year = this.SelectedMonth.Year;
+        Int32 month = this.SelectedMonth.Month;
 
-        var items = this._transactionsVm.Transactions
+        List<Transaction> items = this._transactionsVm.Transactions
             .Where(t => t.Date.Year == year && t.Date.Month == month)
             .OrderByDescending(t => t.Date)
             .ToList();
@@ -182,7 +192,7 @@ public sealed partial class MainViewModel : ObservableObject
         Application.Current?.Dispatcher.Invoke(() =>
         {
             this.FilteredTransactions.Clear();
-            foreach (var t in items) this.FilteredTransactions.Add(t);
+            foreach (Transaction t in items) this.FilteredTransactions.Add(t);
         });
 
         // totals may change visually -> notify
@@ -218,8 +228,6 @@ public sealed partial class MainViewModel : ObservableObject
         this.OnPropertyChanged(nameof(this.ExpenseTotal));
         this.OnPropertyChanged(nameof(this.NetTotal));
     }
-
-    // Forwarded child commands as RelayCommand wrappers so XAML binds here directly
 
     [RelayCommand]
     private async Task AddTransactionAsync()

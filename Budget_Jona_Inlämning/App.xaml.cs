@@ -11,6 +11,16 @@ using Budget_Jona_Inlämning.ViewModels;
 
 namespace Budget_Jona_Inlämning;
 
+
+
+/// <summary>
+/// Represents the entry point and main application class for the WPF budget management app, responsible for configuring
+/// services, managing application lifetime, and initializing the main window.
+/// </summary>
+/// <remarks>This class sets up dependency injection, applies database migrations on startup, and manages the
+/// lifetime scopes for application services and UI components. It overrides startup and exit events to ensure proper
+/// initialization and cleanup of resources. Access application-wide services via the <see cref="Services"/>
+/// property.</remarks>
 public partial class App : Application
 {
     private IHost? _host;

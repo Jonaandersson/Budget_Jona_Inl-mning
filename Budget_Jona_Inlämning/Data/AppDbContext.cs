@@ -5,6 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Budget_Jona_Inlämning.Data;
 
+/// <summary>
+/// Represents the Entity Framework Core database context for the application, providing access to categories,
+/// transactions, and income/loss records.
+/// </summary>
+/// <remarks>Use this context to query and save instances of the application's domain entities. The context
+/// configures entity mappings and conversions, including handling decimal values as doubles for compatibility with
+/// SQLite. This class is intended to be registered with dependency injection and used within a unit of work pattern.
+/// AppDbContext is sealed and should not be inherited.</remarks>
 public sealed class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
@@ -24,7 +32,6 @@ public sealed class AppDbContext : DbContext
             .HasIndex(c => c.Name)
             .IsUnique(false);
 
-        // SQLite doesn't support decimal natively; use double conversions
         modelBuilder.Entity<Transaction>()
             .Property(t => t.Amount)
             .HasConversion<double>();

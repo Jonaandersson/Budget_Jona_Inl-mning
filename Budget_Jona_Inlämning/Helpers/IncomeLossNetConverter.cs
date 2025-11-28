@@ -16,8 +16,8 @@ public sealed class IncomeLossNetConverter : IMultiValueConverter
 
         try
         {
-            var amountLost = System.Convert.ToDecimal(values[0], culture);
-            var refund = System.Convert.ToDecimal(values[1], culture);
+            Decimal amountLost = System.Convert.ToDecimal(values[0], culture);
+            Decimal refund = System.Convert.ToDecimal(values[1], culture);
             return amountLost - refund;
         }
         catch

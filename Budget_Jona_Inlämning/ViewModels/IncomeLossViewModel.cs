@@ -12,12 +12,19 @@ using Budget_Jona_Inlämning.Views;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
+/// <summary>
+/// Represents the view model for managing income loss records and dialog interactions within the application.
+/// </summary>
+/// <remarks>This class provides functionality to load, add, delete, and save income loss entries, as well as to
+/// handle dialog result and close requests. It is intended for use in UI scenarios where users can view and edit income
+/// loss data. The class is sealed and partially generated, and implements dialog-related interfaces to support modal
+/// workflows.</remarks>
 public sealed partial class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
 {
     private readonly IIncomeLossService _incomeLossService;
     private readonly IDialogService _dialogService;
 
-    // Generated property: public IncomeLoss Model { get; set; }
+    
     [ObservableProperty]
     private IncomeLoss model = new IncomeLoss { Date = DateTime.Today, RefundPercentage = 0.80m };
 
@@ -45,12 +52,12 @@ public sealed partial class IncomeLossViewModel : BaseViewModel, IDialogRequestC
         try
         {
             this.IsBusy = true;
-            var list = await this._incomeLossService.GetAllAsync().ConfigureAwait(false);
+            List<IncomeLoss> list = await this._incomeLossService.GetAllAsync().ConfigureAwait(false);
 
             Application.Current?.Dispatcher.Invoke(() =>
             {
                 this.IncomeLosses.Clear();
-                foreach (var i in list) this.IncomeLosses.Add(i);
+                foreach (IncomeLoss i in list) this.IncomeLosses.Add(i);
             });
         }
         finally
@@ -62,10 +69,10 @@ public sealed partial class IncomeLossViewModel : BaseViewModel, IDialogRequestC
     [RelayCommand]
     private async Task AddAsync()
     {
-        var editor = new IncomeLossViewModel(this._incomeLossService, this._dialogService);
-        var view = new IncomeLossEditView();
+        IncomeLossViewModel editor = new IncomeLossViewModel(this._incomeLossService, this._dialogService);
+        IncomeLossEditView view = new IncomeLossEditView();
 
-        var result = await this._dialogService.ShowDialogAsync(view, editor);
+        Nullable<bool> result = await this._dialogService.ShowDialogAsync(view, editor);
         if (result == true)
         {
             await this.LoadAsync();

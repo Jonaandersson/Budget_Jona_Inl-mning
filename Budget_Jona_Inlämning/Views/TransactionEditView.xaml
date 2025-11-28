@@ -12,7 +12,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="Edit Transaction" Style="{StaticResource TitleTextBlock}" Grid.Row="0" />
+            <TextBlock Text="Transaction" Style="{StaticResource TitleTextBlock}" Grid.Row="0" />
 
             <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,8,0,8">
                 <TextBlock Text="Date:" VerticalAlignment="Center" Width="80"/>

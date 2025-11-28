@@ -44,7 +44,7 @@ public class CategoryService : ICategoryService
     public async Task UpdateAsync(Category category)
     {
         // Fetch the tracked entity from the context and apply changes to it.
-        var tracked = await this._context.Categories.FindAsync(category.Id).ConfigureAwait(false);
+        Category tracked = await this._context.Categories.FindAsync(category.Id).ConfigureAwait(false);
         if (tracked is null)
         {
             // If not found in the DB, you might want to throw or add it
@@ -64,7 +64,7 @@ public class CategoryService : ICategoryService
 
     public async Task DeleteAsync(int id)
     {
-        var entity = await this._context.Categories.FindAsync(id).ConfigureAwait(false);
+        Category entity = await this._context.Categories.FindAsync(id).ConfigureAwait(false);
         if (entity is null)
         {
             return;

@@ -11,12 +11,20 @@ using Budget_Jona_Inlämning.Views;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
+/// <summary>
+/// Represents a view model for managing and editing categories within the application.
+/// </summary>
+/// <remarks>CategoryViewModel provides commands and properties for loading, adding, editing, and deleting
+/// categories. It interacts with category and dialog services to support user-driven category management workflows.
+/// This class is intended for use in UI scenarios where categories are displayed and modified. The class raises the
+/// CloseRequested event to signal when the associated dialog should be closed, and exposes the DialogResult property to
+/// indicate the outcome of dialog operations.</remarks>
 public sealed partial class CategoryViewModel : BaseViewModel
 {
     private readonly ICategoryService _categoryService;
     private readonly IDialogService _dialogService;
 
-    // Generated property: public Category Model { get; set; }
+    
     [ObservableProperty]
     private Category model = new();
 
@@ -31,7 +39,7 @@ public sealed partial class CategoryViewModel : BaseViewModel
         this._dialogService = dialogService;
     }
 
-    // Convenience ctor for editor usage if needed
+    
     public CategoryViewModel(ICategoryService categoryService)
         : this(categoryService, null!)
     {
@@ -45,12 +53,12 @@ public sealed partial class CategoryViewModel : BaseViewModel
         try
         {
             this.IsBusy = true;
-            var cats = await this._categoryService.GetAllAsync().ConfigureAwait(false);
+            List<Category> cats = await this._categoryService.GetAllAsync().ConfigureAwait(false);
 
             Application.Current?.Dispatcher.Invoke(() =>
             {
                 this.Categories.Clear();
-                foreach (var c in cats) this.Categories.Add(c);
+                foreach (Category c in cats) this.Categories.Add(c);
             });
         }
         finally
@@ -62,10 +70,10 @@ public sealed partial class CategoryViewModel : BaseViewModel
     [RelayCommand]
     private async Task AddAsync()
     {
-        var editor = new CategoryEditorViewModel(this._categoryService);
-        var view = new CategoryEditView();
+        CategoryEditorViewModel editor = new CategoryEditorViewModel(this._categoryService);
+        CategoryEditView view = new CategoryEditView();
 
-        var result = await this._dialogService.ShowDialogAsync(view, editor);
+        Nullable<bool> result = await this._dialogService.ShowDialogAsync(view, editor);
         if (result == true)
         {
             await this.LoadAsync();
@@ -77,17 +85,17 @@ public sealed partial class CategoryViewModel : BaseViewModel
     {
         if (category is null) return;
 
-        var entity = await this._categoryService.GetByIdAsync(category.Id).ConfigureAwait(false);
+        Category entity = await this._categoryService.GetByIdAsync(category.Id).ConfigureAwait(false);
         if (entity is null) return;
 
-        var editor = new CategoryEditorViewModel(this._categoryService);
+        CategoryEditorViewModel editor = new CategoryEditorViewModel(this._categoryService);
         // initialize editor model
         editor.Model.Id = entity.Id;
         editor.Model.Name = entity.Name;
         editor.Model.Type = entity.Type;
 
-        var view = new CategoryEditView();
-        var result = await this._dialogService.ShowDialogAsync(view, editor);
+        CategoryEditView view = new CategoryEditView();
+        Nullable<bool> result = await this._dialogService.ShowDialogAsync(view, editor);
         if (result == true)
         {
             await this.LoadAsync();
@@ -99,13 +107,11 @@ public sealed partial class CategoryViewModel : BaseViewModel
     {
         if (category is null) return;
 
-        var answer = MessageBox.Show($"Delete category '{category.Name}'? This will not delete transactions.", "Confirm delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        MessageBoxResult answer = MessageBox.Show($"Delete category '{category.Name}'? This will not delete transactions.", "Confirm delete", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (answer != MessageBoxResult.Yes) return;
 
         await this._categoryService.DeleteAsync(category.Id).ConfigureAwait(false);
 
         Application.Current?.Dispatcher.Invoke(() => this.Categories.Remove(category));
     }
-
-    // Editor save/cancel kept in CategoryEditorViewModel; this class is the list VM.
 }

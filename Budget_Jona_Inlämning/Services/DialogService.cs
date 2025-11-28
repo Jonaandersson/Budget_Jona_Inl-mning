@@ -8,11 +8,25 @@ namespace Budget_Jona_Inlämning.Services;
 
 public class DialogService : IDialogService
 {
+    /// <summary>
+    /// Displays the specified view as a modal dialog window, using the provided view model as its data context, and
+    /// returns a task that completes when the dialog is closed.
+    /// </summary>
+    /// <remarks>If the view model implements <c>IDialogRequestClose</c>, the dialog will close when its
+    /// <c>CloseRequested</c> event is raised. If the view model implements <c>IHaveDialogResult</c>, its
+    /// <c>DialogResult</c> property determines the returned value. Otherwise, the result is <see langword="null"/>. The
+    /// dialog is shown modally and blocks interaction with the owner window until closed.</remarks>
+    /// <param name="view">The user control to display as the content of the dialog window.</param>
+    /// <param name="viewModel">The view model to use as the data context for the dialog. If the view model implements dialog-related
+    /// interfaces, its state may influence the dialog result.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the dialog was
+    /// accepted, <see langword="false"/> if it was canceled, or <see langword="null"/> if no explicit result was
+    /// provided.</returns>
     public Task<bool?> ShowDialogAsync(UserControl view, object viewModel)
     {
         var tcs = new TaskCompletionSource<bool?>();
 
-        var window = new Window
+        Window window = new Window
         {
             Title = viewModel?.GetType().Name ?? "Dialog",
             Content = view,

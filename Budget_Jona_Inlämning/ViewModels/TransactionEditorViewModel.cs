@@ -11,6 +11,14 @@ using Budget_Jona_Inlämning.Views;
 
 namespace Budget_Jona_Inlämning.ViewModels;
 
+/// <summary>
+/// Represents the view model for editing a transaction, providing data binding and command logic for transaction
+/// creation or modification dialogs.
+/// </summary>
+/// <remarks>This view model manages the transaction editing workflow, including loading available categories,
+/// handling dialog results, and coordinating with related services. It exposes commands for saving, canceling, and
+/// adding categories, and raises the CloseRequested event to signal dialog closure. The view model is intended for use
+/// in UI scenarios where transactions are created or edited interactively.</remarks>
 public sealed partial class TransactionEditorViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
 {
     private readonly ITransactionService _transactionService;
@@ -59,13 +67,13 @@ public sealed partial class TransactionEditorViewModel : BaseViewModel, IDialogR
 
     public async Task LoadCategoriesAsync()
     {
-        var cats = await this._categoryService.GetAllAsync().ConfigureAwait(false);
+        List<Category> cats = await this._categoryService.GetAllAsync().ConfigureAwait(false);
 
         // Update collection on UI thread
         Application.Current?.Dispatcher.Invoke(() =>
         {
             this.Categories.Clear();
-            foreach (var c in cats)
+            foreach (Category c in cats)
             {
                 this.Categories.Add(c);
             }
@@ -75,11 +83,11 @@ public sealed partial class TransactionEditorViewModel : BaseViewModel, IDialogR
     [RelayCommand]
     private async Task AddCategoryAsync()
     {
-        var editor = this._categoryEditorFactory();
-        var view = new CategoryEditView();
+        CategoryEditorViewModel editor = this._categoryEditorFactory();
+        CategoryEditView view = new CategoryEditView();
 
         // show dialog; keep context so UI flow is preserved
-        var result = await this._dialogService.ShowDialogAsync(view, editor);
+        Nullable<bool> result = await this._dialogService.ShowDialogAsync(view, editor);
         if (result == true)
         {
             // reload categories on UI
