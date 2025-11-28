@@ -2,31 +2,35 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Budget_Jona_Inlämning.Views.CategoryEditView"
               xmlns:local="clr-namespace:Budget_Jona_Inlämning.Models">
-    <Grid Margin="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Border Style="{StaticResource CardStyle}" Padding="12" Margin="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock Text="Name:" VerticalAlignment="Center" Width="80"/>
-            <TextBox Text="{Binding Model.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="240"/>
-        </StackPanel>
+            <TextBlock Text="Edit Category" Style="{StaticResource TitleTextBlock}" Grid.Row="0" />
 
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8" VerticalAlignment="Center">
-            <TextBlock Text="Type:" VerticalAlignment="Center" Width="80"/>
-            <ComboBox Width="160"
-                      SelectedValue="{Binding Model.Type, Mode=TwoWay}"
-                      SelectedValuePath="Tag">
-                <ComboBoxItem Tag="{x:Static local:CategoryType.Expense}">Expense</ComboBoxItem>
-                <ComboBoxItem Tag="{x:Static local:CategoryType.Income}">Income</ComboBoxItem>
-            </ComboBox>
-        </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,8,0,8">
+                <TextBlock Text="Name:" VerticalAlignment="Center" Width="80"/>
+                <TextBox Text="{Binding Model.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="240"/>
+            </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Right">
-            <Button Content="Save" Command="{Binding SaveCommand}" Margin="0,0,8,0"/>
-            <Button Content="Cancel" Command="{Binding CancelCommand}"/>
-        </StackPanel>
-    </Grid>
+            <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8" VerticalAlignment="Center">
+                <TextBlock Text="Type:" VerticalAlignment="Center" Width="80"/>
+                <ComboBox Width="160"
+                          SelectedValue="{Binding Model.Type, Mode=TwoWay}"
+                          SelectedValuePath="Tag">
+                    <ComboBoxItem Tag="{x:Static local:CategoryType.Expense}">Expense</ComboBoxItem>
+                    <ComboBoxItem Tag="{x:Static local:CategoryType.Income}">Income</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Grid.Row="3" HorizontalAlignment="Right" Margin="0,8,0,0">
+                <Button Content="Save" Command="{Binding SaveCommand}" Margin="0,0,8,0" Style="{StaticResource ButtonPrimaryStyle}"/>
+                <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
 </UserControl>

@@ -1,45 +1,49 @@
 ﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Budget_Jona_Inlämning.Views.TransactionEditView">
-    <Grid Margin="8">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Border Style="{StaticResource CardStyle}" Padding="12" Margin="8">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock Text="Date:" VerticalAlignment="Center" Width="80"/>
-            <DatePicker SelectedDate="{Binding Model.Date, Mode=TwoWay}" />
-        </StackPanel>
+            <TextBlock Text="Edit Transaction" Style="{StaticResource TitleTextBlock}" Grid.Row="0" />
 
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,8">
-            <TextBlock Text="Amount:" VerticalAlignment="Center" Width="80"/>
-            <TextBox Text="{Binding Model.Amount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Width="120"/>
-        </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,8,0,8">
+                <TextBlock Text="Date:" VerticalAlignment="Center" Width="80"/>
+                <DatePicker SelectedDate="{Binding Model.Date, Mode=TwoWay}" />
+            </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
-            <TextBlock Text="Description:" VerticalAlignment="Center" Width="80"/>
-            <TextBox Text="{Binding Model.Description, Mode=TwoWay}" Width="300"/>
-        </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,0,8">
+                <TextBlock Text="Amount:" VerticalAlignment="Center" Width="80"/>
+                <TextBox Text="{Binding Model.Amount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Width="120"/>
+            </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,8">
-            <CheckBox Content="Income" IsChecked="{Binding Model.IsIncome, Mode=TwoWay}" VerticalAlignment="Center"/>
-            <CheckBox Content="Monthly" IsChecked="{Binding Model.IsMonthly, Mode=TwoWay}" Margin="12,0,0,0" VerticalAlignment="Center"/>
-        </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,8">
+                <TextBlock Text="Description:" VerticalAlignment="Center" Width="80"/>
+                <TextBox Text="{Binding Model.Description, Mode=TwoWay}" Width="300"/>
+            </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="4" Margin="0,0,0,8">
-            <TextBlock Text="Category:" VerticalAlignment="Center" Width="80"/>
-            <ComboBox ItemsSource="{Binding Categories}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding Model.CategoryId, Mode=TwoWay}" Width="200"/>
-            <Button Content="New" Margin="8,0,0,0" Command="{Binding AddCategoryCommand}"/>
-        </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="4" Margin="0,0,0,8">
+                <CheckBox Content="Income" IsChecked="{Binding Model.IsIncome, Mode=TwoWay}" VerticalAlignment="Center"/>
+                <CheckBox Content="Monthly" IsChecked="{Binding Model.IsMonthly, Mode=TwoWay}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="5" HorizontalAlignment="Right">
-            <Button Content="Save" Command="{Binding SaveCommand}" Margin="0,0,8,0"/>
-            <Button Content="Cancel" Command="{Binding CancelCommand}"/>
-        </StackPanel>
-    </Grid>
+            <StackPanel Orientation="Horizontal" Grid.Row="5" Margin="0,0,0,8">
+                <TextBlock Text="Category:" VerticalAlignment="Center" Width="80"/>
+                <ComboBox ItemsSource="{Binding Categories}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding Model.CategoryId, Mode=TwoWay}" Width="200"/>
+                <Button Content="New" Margin="8,0,0,0" Command="{Binding AddCategoryCommand}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Grid.Row="6" HorizontalAlignment="Right">
+                <Button Content="Save" Command="{Binding SaveCommand}" Margin="0,0,8,0" Style="{StaticResource ButtonPrimaryStyle}"/>
+                <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
 </UserControl>
