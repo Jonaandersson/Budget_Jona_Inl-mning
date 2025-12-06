@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -112,7 +113,16 @@ public sealed partial class MainViewModel : ObservableObject
     public decimal ExpenseTotal => this._transactionsVm.ExpenseTotal;
     public decimal NetTotal => this.IncomeTotal - this.ExpenseTotal;
 
-    public string SelectedMonthLabel => this.SelectedMonth.ToString("MMMM yyyy");
+    // Capitalize first character of the month label so it starts with an uppercase letter.
+    public string SelectedMonthLabel
+    {
+        get
+        {
+            string label = this.SelectedMonth.ToString("MMMM yyyy");
+            if (string.IsNullOrEmpty(label)) return label;
+            return char.ToUpper(label[0], CultureInfo.CurrentCulture) + label.Substring(1);
+        }
+    }
 
     [RelayCommand]
     public async Task LoadAllAsync()

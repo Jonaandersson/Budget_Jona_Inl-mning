@@ -21,8 +21,6 @@
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                 <Button Content="Add Transaction" Command="{Binding AddTransactionCommand}" Margin="0,0,8,0" Style="{StaticResource ButtonPrimaryStyle}"/>
                 <Button Content="Add IncomeLoss" Command="{Binding AddIncomeLossCommand}" Margin="0,0,8,0" Style="{StaticResource ButtonPrimaryStyle}"/>
-                <Button Content="Add Category" Command="{Binding AddCategoryCommand}" Margin="0,0,8,0" Style="{StaticResource ButtonPrimaryStyle}"/>
-                <Button Content="Refresh" Command="{Binding LoadCommand}" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="0,0,4,0">
@@ -30,7 +28,6 @@
                     <Button Content="◀" Command="{Binding PrevMonthCommand}" Width="28" Margin="0,0,6,0"/>
                     <TextBlock Text="{Binding SelectedMonthLabel}" VerticalAlignment="Center" FontWeight="Bold" Margin="0,0,6,0"/>
                     <Button Content="▶" Command="{Binding NextMonthCommand}" Width="28" Margin="0,0,6,0"/>
-                    <Button Content="Today" Command="{Binding GoToCurrentMonthCommand}" Margin="0,0,6,0"/>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -94,9 +91,8 @@
                 <!-- IncomeLoss card (ALL IncomeLosses) - fixed height so transactions keep their area -->
                 <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,8,0,0" Height="320">
                     <StackPanel>
-                        <TextBlock Text="Income/Loss" Style="{StaticResource TitleTextBlock}" />
-                        <TextBlock Text="(All IncomeLoss records — edit or delete per item)" FontStyle="Italic" Margin="0,4,0,8"/>
-
+                        <TextBlock Text="Income Loss" Style="{StaticResource TitleTextBlock}" />
+                        
                         <ListBox ItemsSource="{Binding IncomeLosses}"
                                  Height="260"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -120,14 +116,7 @@
                                             <TextBlock Text="{Binding AmountLost, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
                                             <TextBlock Text=" → " Margin="6,0"/>
                                             <TextBlock Text="{Binding RefundAmount, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
-                                            <TextBlock Margin="8,0,0,0">
-                                                <TextBlock.Text>
-                                                    <MultiBinding Converter="{StaticResource IncomeLossNetConverter}" StringFormat="Net: {0:C}">
-                                                        <Binding Path="AmountLost"/>
-                                                        <Binding Path="RefundAmount"/>
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
+                                            <!-- Removed per-Item 'Net' display -->
                                         </StackPanel>
 
                                         <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
@@ -165,7 +154,6 @@
                         <DockPanel>
                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,8">
                                 <Button Content="Add" Command="{Binding AddCategoryCommand}" Margin="0,0,8,0" Style="{StaticResource ButtonPrimaryStyle}"/>
-                                <Button Content="Refresh" Command="{Binding LoadCommand}"/>
                             </StackPanel>
 
                             <DataGrid ItemsSource="{Binding Categories}"
