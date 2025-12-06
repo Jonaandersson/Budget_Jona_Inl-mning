@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:helpers="clr-namespace:Budget_Jona_Inlämning.Helpers"
              mc:Ignorable="d"
-             x:Class="Budget_Jona_Inlämning.Views.OverviewView">
+             x:Class="Budget_Jona_Inlämning.Views.OverviewView"
+             Language="sv-SE">
     <UserControl.Resources>
         <helpers:IncomeLossNetConverter x:Key="IncomeLossNetConverter"/>
     </UserControl.Resources>
@@ -15,7 +16,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Top bar: actions + current totals and month navigation -->
+        <!-- Top bar -->
         <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,8">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                 <Button Content="Add Transaction" Command="{Binding AddTransactionCommand}" Margin="0,0,8,0" Style="{StaticResource ButtonPrimaryStyle}"/>
@@ -50,19 +51,26 @@
                 <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Left column: Transactions + Projected -->
+            <!-- LEFT: Transactions + IncomeLoss (all items) -->
             <Grid Grid.Column="0" Margin="0,0,8,0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="2*"/>
                     <RowDefinition Height="*"/>
+                    <!-- transactions -->
+                    <RowDefinition Height="320"/>
+                    <!-- income/loss card fixed height to prevent stealing space -->
                 </Grid.RowDefinitions>
 
+                <!-- Transactions DataGrid (internal scrollbar) -->
                 <DataGrid Grid.Row="0"
                           ItemsSource="{Binding FilteredTransactions}"
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
                           SelectionMode="Single"
-                          SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
+                          SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}"
+                          VirtualizingPanel.IsVirtualizing="True"
+                          EnableRowVirtualization="True"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          VerticalAlignment="Stretch">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=d}" Width="120"/>
                         <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
@@ -83,104 +91,133 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,8,0,0">
+                <!-- IncomeLoss card (ALL IncomeLosses) - fixed height so transactions keep their area -->
+                <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,8,0,0" Height="320">
                     <StackPanel>
-                        <TextBlock Text="Projected (next month)" Style="{StaticResource TitleTextBlock}" />
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <TextBlock Text="Income:" FontWeight="Bold" Margin="0,0,4,0"/>
-                            <TextBlock Text="{Binding ProjectedIncome, StringFormat=C}" Margin="0,0,12,0"/>
-                            <TextBlock Text="Expense:" FontWeight="Bold" Margin="0,0,4,0"/>
-                            <TextBlock Text="{Binding ProjectedExpense, StringFormat=C}" Margin="0,0,12,0"/>
-                            <TextBlock Text="Net:" FontWeight="Bold" Margin="0,0,4,0"/>
-                            <TextBlock Text="{Binding ProjectedNet, StringFormat=C}" />
-                        </StackPanel>
-                        <TextBlock Text="{Binding IncomeLossAdjustment, StringFormat='IncomeLoss adjustment: {0:C}'}" HorizontalAlignment="Right" FontStyle="Italic" Margin="0,8,0,0"/>
+                        <TextBlock Text="Income/Loss" Style="{StaticResource TitleTextBlock}" />
+                        <TextBlock Text="(All IncomeLoss records — edit or delete per item)" FontStyle="Italic" Margin="0,4,0,8"/>
 
-                        <Expander Header="IncomeLoss details" IsExpanded="False" Margin="0,8,0,0">
-                            <StackPanel>
-                                <TextBlock Text="Current month" FontWeight="Bold" Margin="0,4,0,4"/>
-                                <ItemsControl ItemsSource="{Binding CurrentIncomeLosses}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
-                                                <TextBlock Text="{Binding Date, StringFormat=d}" Width="80"/>
-                                                <TextBlock Text="{Binding AmountLost, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
-                                                <TextBlock Text=" → " Margin="6,0"/>
-                                                <TextBlock Text="{Binding RefundAmount, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
-                                                <TextBlock Margin="8,0,0,0">
-                                                    <TextBlock.Text>
-                                                        <MultiBinding Converter="{StaticResource IncomeLossNetConverter}" StringFormat="Net: {0:C}">
-                                                            <Binding Path="AmountLost"/>
-                                                            <Binding Path="RefundAmount"/>
-                                                        </MultiBinding>
-                                                    </TextBlock.Text>
-                                                </TextBlock>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                        <ListBox ItemsSource="{Binding IncomeLosses}"
+                                 Height="260"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.CanContentScroll="True"
+                                 VirtualizingStackPanel.IsVirtualizing="True"
+                                 VirtualizingStackPanel.VirtualizationMode="Standard"
+                                 BorderThickness="0"
+                                 Margin="0,2,0,2"
+                                 Background="Transparent"
+                                 SelectionMode="Single">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,2,0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
 
-                                <TextBlock Text="Next month" FontWeight="Bold" Margin="0,8,0,4"/>
-                                <ItemsControl ItemsSource="{Binding ProjectedIncomeLosses}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
-                                                <TextBlock Text="{Binding Date, StringFormat=d}" Width="80"/>
-                                                <TextBlock Text="{Binding AmountLost, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
-                                                <TextBlock Text=" → " Margin="6,0"/>
-                                                <TextBlock Text="{Binding RefundAmount, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
-                                                <TextBlock Margin="8,0,0,0">
-                                                    <TextBlock.Text>
-                                                        <MultiBinding Converter="{StaticResource IncomeLossNetConverter}" StringFormat="Net: {0:C}">
-                                                            <Binding Path="AmountLost"/>
-                                                            <Binding Path="RefundAmount"/>
-                                                        </MultiBinding>
-                                                    </TextBlock.Text>
-                                                </TextBlock>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Expander>
+                                        <StackPanel Orientation="Horizontal" Grid.Column="0">
+                                            <TextBlock Text="{Binding Date, StringFormat=d}" Width="80"/>
+                                            <TextBlock Text="{Binding AmountLost, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
+                                            <TextBlock Text=" → " Margin="6,0"/>
+                                            <TextBlock Text="{Binding RefundAmount, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
+                                            <TextBlock Margin="8,0,0,0">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource IncomeLossNetConverter}" StringFormat="Net: {0:C}">
+                                                        <Binding Path="AmountLost"/>
+                                                        <Binding Path="RefundAmount"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                            <Button Content="Edit"
+                                                    Command="{Binding DataContext.EditIncomeLossCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Margin="0,0,8,0"
+                                                    Style="{StaticResource ButtonPrimaryStyle}"/>
+                                            <Button Content="Delete"
+                                                    Command="{Binding DataContext.DeleteIncomeLossCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <Separator Grid.Column="1" VerticalAlignment="Stretch" Margin="4,0"/>
 
-            <!-- Categories panel -->
-            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="8,0,0,0">
-                <StackPanel>
-                    <TextBlock Text="Categories" Style="{StaticResource TitleTextBlock}" Margin="0,0,0,8"/>
-                    <DockPanel>
-                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,8">
-                            <Button Content="Add" Command="{Binding AddCategoryCommand}" Margin="0,0,8,0" Style="{StaticResource ButtonPrimaryStyle}"/>
-                            <Button Content="Refresh" Command="{Binding LoadCommand}"/>
-                        </StackPanel>
+            <!-- RIGHT: Categories (top) + Projected (bottom) -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                        <DataGrid ItemsSource="{Binding Categories}"
-                                  AutoGenerateColumns="False"
-                                  IsReadOnly="True"
-                                  CanUserAddRows="False"
-                                  SelectionMode="Single">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
-                                <DataGridTemplateColumn Header="Actions" Width="Auto">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button Content="Edit" Command="{Binding DataContext.EditCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,8,0"/>
-                                                <Button Content="Delete" Command="{Binding DataContext.DeleteCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </DockPanel>
-                </StackPanel>
-            </Border>
+                <!-- Categories card (top) -->
+                <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="8" Margin="0,0,0,8" MaxHeight="420">
+                    <StackPanel>
+                        <TextBlock Text="Categories" Style="{StaticResource TitleTextBlock}" Margin="0,0,0,8"/>
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,8">
+                                <Button Content="Add" Command="{Binding AddCategoryCommand}" Margin="0,0,8,0" Style="{StaticResource ButtonPrimaryStyle}"/>
+                                <Button Content="Refresh" Command="{Binding LoadCommand}"/>
+                            </StackPanel>
+
+                            <DataGrid ItemsSource="{Binding Categories}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      CanUserAddRows="False"
+                                      SelectionMode="Single"
+                                      MaxHeight="300"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                      VirtualizingPanel.IsVirtualizing="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                                    <DataGridTemplateColumn Header="Actions" Width="Auto">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="Edit" Command="{Binding DataContext.EditCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,8,0"/>
+                                                    <Button Content="Delete" Command="{Binding DataContext.DeleteCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Projected card (simple summary) -->
+                <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="8" Margin="0,0,0,8" MaxHeight="180">
+                    <StackPanel>
+                        <TextBlock Text="Projected (next month)" Style="{StaticResource TitleTextBlock}" />
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="0,8,0,0">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBlock Text="Income:" FontWeight="Bold" Margin="0,0,4,0"/>
+                                <TextBlock Text="{Binding ProjectedIncome, StringFormat=C}" Margin="0,0,12,0"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBlock Text="Expense:" FontWeight="Bold" Margin="0,0,4,0"/>
+                                <TextBlock Text="{Binding ProjectedExpense, StringFormat=C}" Margin="0,0,12,0"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <TextBlock Text="Net:" FontWeight="Bold" Margin="0,0,4,0"/>
+                                <TextBlock Text="{Binding ProjectedNet, StringFormat=C}" Margin="0,0,12,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- filler row if you want additional content below -->
+                <Border Grid.Row="2" Background="Transparent"/>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

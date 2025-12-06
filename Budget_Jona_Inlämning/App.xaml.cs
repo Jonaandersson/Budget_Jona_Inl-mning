@@ -1,13 +1,14 @@
 ﻿#nullable enable
-using System;
-using System.Threading.Tasks;
-using System.Windows;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Budget_Jona_Inlämning.Data;
 using Budget_Jona_Inlämning.Services;
 using Budget_Jona_Inlämning.ViewModels;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace Budget_Jona_Inlämning;
 
@@ -31,6 +32,10 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        var ci = new CultureInfo("sv-SE");
+        CultureInfo.DefaultThreadCurrentCulture = ci;
+        CultureInfo.DefaultThreadCurrentUICulture = ci;
 
         this._host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
@@ -65,6 +70,7 @@ public partial class App : Application
 
                 services.AddScoped<MainWindow>();
             })
+
             .Build();
 
         this._host.Start();

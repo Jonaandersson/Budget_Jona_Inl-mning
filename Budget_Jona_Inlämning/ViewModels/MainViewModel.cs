@@ -77,6 +77,8 @@ public sealed partial class MainViewModel : ObservableObject
         }
 
         this._transactionsVm.Transactions.CollectionChanged += this.Transactions_CollectionChanged;
+
+        this._incomeLossesVm.IncomeLosses.CollectionChanged += this.IncomeLosses_CollectionChanged;
     }
 
     partial void OnSelectedMonthChanged(DateTime value)
@@ -88,6 +90,11 @@ public sealed partial class MainViewModel : ObservableObject
     private void Transactions_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         this.UpdateFilteredTransactions();
+    }
+
+    private void IncomeLosses_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        this.ComputeProjections();
     }
 
     public ObservableCollection<Transaction> Transactions => this._transactionsVm.Transactions;
@@ -276,6 +283,19 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task AddIncomeLossAsync()
     {
         await ExecuteVmCommandAsync(this._incomeLossesVm.AddCommand, null).ConfigureAwait(false);
+    }
+
+    // Forward Edit/Delete commands for IncomeLoss items so Overview buttons work
+    [RelayCommand]
+    private async Task EditIncomeLossAsync(IncomeLoss? item)
+    {
+        await ExecuteVmCommandAsync(this._incomeLossesVm.EditCommand, item).ConfigureAwait(false);
+    }
+
+    [RelayCommand]
+    private async Task DeleteIncomeLossAsync(IncomeLoss? item)
+    {
+        await ExecuteVmCommandAsync(this._incomeLossesVm.DeleteCommand, item).ConfigureAwait(false);
     }
 
     [RelayCommand]

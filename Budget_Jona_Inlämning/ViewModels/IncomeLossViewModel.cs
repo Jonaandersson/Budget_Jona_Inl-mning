@@ -15,10 +15,6 @@ namespace Budget_Jona_Inlämning.ViewModels;
 /// <summary>
 /// Represents the view model for managing income loss records and dialog interactions within the application.
 /// </summary>
-/// <remarks>This class provides functionality to load, add, delete, and save income loss entries, as well as to
-/// handle dialog result and close requests. It is intended for use in UI scenarios where users can view and edit income
-/// loss data. The class is sealed and partially generated, and implements dialog-related interfaces to support modal
-/// workflows.</remarks>
 public sealed partial class IncomeLossViewModel : BaseViewModel, IDialogRequestClose, IHaveDialogResult
 {
     private readonly IIncomeLossService _incomeLossService;
@@ -76,6 +72,34 @@ public sealed partial class IncomeLossViewModel : BaseViewModel, IDialogRequestC
         if (result == true)
         {
             await this.LoadAsync();
+        }
+    }
+
+    [RelayCommand]
+    private async Task EditAsync(IncomeLoss? item)
+    {
+        if (item is null) return;
+
+        // Create an editor VM pre-filled with a copy of the selected item
+        IncomeLossViewModel editor = new IncomeLossViewModel(this._incomeLossService, this._dialogService)
+        {
+            Model = new IncomeLoss
+            {
+                Id = item.Id,
+                Date = item.Date,
+                AmountLost = item.AmountLost,
+                LostDays = item.LostDays,
+                RefundPercentage = item.RefundPercentage
+            }
+        };
+
+        IncomeLossEditView view = new IncomeLossEditView();
+
+        Nullable<bool> result = await this._dialogService.ShowDialogAsync(view, editor);
+        if (result == true)
+        {
+            // reload to reflect changes
+            await this.LoadAsync().ConfigureAwait(false);
         }
     }
 
