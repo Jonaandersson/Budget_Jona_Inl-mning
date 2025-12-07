@@ -113,7 +113,7 @@ public sealed partial class MainViewModel : ObservableObject
     public decimal ExpenseTotal => this._transactionsVm.ExpenseTotal;
     public decimal NetTotal => this.IncomeTotal - this.ExpenseTotal;
 
-    // Capitalize first character of the month label so it starts with an uppercase letter.
+    // upper case first letter of month label
     public string SelectedMonthLabel
     {
         get
@@ -132,7 +132,7 @@ public sealed partial class MainViewModel : ObservableObject
         await this._transactionsVm.LoadAsync().ConfigureAwait(false);
         await this._incomeLossesVm.LoadAsync().ConfigureAwait(false);
 
-        // Compute projection and update lists on UI thread
+        // projection and update lists on UI thread
         this.ComputeProjections();
         this.NotifyTotals();
 
@@ -220,7 +220,7 @@ public sealed partial class MainViewModel : ObservableObject
             this.NotifyTotals();
         }
 
-        // If income-loss list changed, recompute projections and lists
+        // If income-loss list changed, redo projections and lists
         if (e.PropertyName is nameof(IncomeLossViewModel.IncomeLosses))
         {
             this.ComputeProjections();
@@ -240,7 +240,7 @@ public sealed partial class MainViewModel : ObservableObject
         this.OnPropertyChanged(nameof(this.NetTotal));
     }
 
-    // Helper to invoke child VM commands (reduces duplicated pattern)
+    // Helper to invoke child VM commands (reduces duplicated pattern?)
     private static async Task ExecuteVmCommandAsync(object? commandObj, object? parameter = null)
     {
         if (commandObj is IAsyncRelayCommand asyncCmd)
@@ -295,7 +295,7 @@ public sealed partial class MainViewModel : ObservableObject
         await ExecuteVmCommandAsync(this._incomeLossesVm.AddCommand, null).ConfigureAwait(false);
     }
 
-    // Forward Edit/Delete commands for IncomeLoss items so Overview buttons work
+    
     [RelayCommand]
     private async Task EditIncomeLossAsync(IncomeLoss? item)
     {

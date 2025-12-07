@@ -87,7 +87,7 @@ public partial class App : Application
             MessageBox.Show($"Failed applying migrations: {ex.Message}", "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        // Create a scope for application UI lifetime and resolve MainWindow from it
+        // a scope for application UI lifetime and resolve MainWindow from it
         this._appScope = this._host.Services.CreateScope();
         MainWindow main = this._appScope.ServiceProvider.GetRequiredService<MainWindow>();
         main.Show();

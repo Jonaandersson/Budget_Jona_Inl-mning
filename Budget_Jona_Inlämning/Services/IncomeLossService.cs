@@ -7,7 +7,13 @@ using Budget_Jona_Inlämning.Models;
 
 namespace Budget_Jona_Inlämning.Services;
 
-
+/// <summary>
+/// Provides operations for managing income and loss records in the application data store.
+/// </summary>
+/// <remarks>This service offers asynchronous methods to retrieve, add, update, and delete income or loss entries.
+/// It is intended to be used as part of the application's data access layer and is typically registered for dependency
+/// injection. All methods interact with the underlying database context and should be awaited to ensure proper
+/// completion of database operations.</remarks>
 public class IncomeLossService : IIncomeLossService
 {
     private readonly AppDbContext _context;

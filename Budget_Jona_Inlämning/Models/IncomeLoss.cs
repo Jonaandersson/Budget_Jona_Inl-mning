@@ -13,7 +13,7 @@ namespace Budget_Jona_Inlämning.Models
         [Required]
         public DateTime Date { get; set; }
 
-        // Total income lost (one days salary)
+        // Total (one days salary)
         [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal AmountLost { get; set; }

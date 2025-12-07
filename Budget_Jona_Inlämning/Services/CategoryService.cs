@@ -19,7 +19,7 @@ public class CategoryService : ICategoryService
 
     public async Task<List<Category>> GetAllAsync()
     {
-        // return detached entities to avoid tracking conflicts in the UI layer
+        // return detached entities to avoid tracking conflicts in the UI
         return await this._context.Categories
             .AsNoTracking()
             .ToListAsync()
@@ -28,7 +28,7 @@ public class CategoryService : ICategoryService
 
     public async Task<Category?> GetByIdAsync(int id)
     {
-        // return a detached entity so callers get a copy they can edit safely
+        
         return await this._context.Categories
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id)
@@ -47,15 +47,14 @@ public class CategoryService : ICategoryService
         Category tracked = await this._context.Categories.FindAsync(category.Id).ConfigureAwait(false);
         if (tracked is null)
         {
-            // If not found in the DB, you might want to throw or add it
-            // Here we add it as a new entity
+            
             this._context.Categories.Add(category);
         }
         else
         {
-            // Apply only the properties you intend to update
+            //  only the properties intend to update
             tracked.Name = category.Name;
-            // If you add more properties later, copy them here
+            
             this._context.Categories.Update(tracked);
         }
 

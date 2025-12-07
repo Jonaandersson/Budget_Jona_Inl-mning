@@ -86,7 +86,7 @@ public sealed partial class TransactionEditorViewModel : BaseViewModel, IDialogR
         CategoryEditorViewModel editor = this._categoryEditorFactory();
         CategoryEditView view = new CategoryEditView();
 
-        // show dialog; keep context so UI flow is preserved
+        // show dialog; keep context so UI flow is preserve
         Nullable<bool> result = await this._dialogService.ShowDialogAsync(view, editor);
         if (result == true)
         {

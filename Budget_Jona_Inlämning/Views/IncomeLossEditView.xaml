@@ -9,9 +9,11 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <!--  footer row for buttons -->
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="Edit Income/Loss" Style="{StaticResource TitleTextBlock}" Grid.Row="0" />
+            <TextBlock Text="Edit Income Loss" Style="{StaticResource TitleTextBlock}" Grid.Row="0" />
 
             <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,8,0,8">
                 <TextBlock Text="Date:" Width="100" VerticalAlignment="Center"/>

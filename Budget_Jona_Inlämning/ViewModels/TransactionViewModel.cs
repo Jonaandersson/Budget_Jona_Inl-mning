@@ -53,7 +53,7 @@ public sealed partial class TransactionViewModel : BaseViewModel
         this._editorFactory = editorFactory;
     }
 
-    // Keep behavior: when totals change, notify NetTotal
+    
     partial void OnIncomeTotalChanged(decimal value)
     {
         this.OnPropertyChanged(nameof(NetTotal));

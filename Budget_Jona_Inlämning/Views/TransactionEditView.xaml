@@ -10,6 +10,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <!-- footer row for buttons -->
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Text="Transaction" Style="{StaticResource TitleTextBlock}" Grid.Row="0" />

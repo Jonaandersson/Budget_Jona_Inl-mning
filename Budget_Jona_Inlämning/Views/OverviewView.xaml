@@ -48,16 +48,16 @@
                 <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
 
-            <!-- LEFT: Transactions + IncomeLoss (all items) -->
+            <!-- LEFT: Transactions + IncomeLoss  -->
             <Grid Grid.Column="0" Margin="0,0,8,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <!-- transactions -->
                     <RowDefinition Height="320"/>
-                    <!-- income/loss card fixed height to prevent stealing space -->
+                    <!-- income/loss card -->
                 </Grid.RowDefinitions>
 
-                <!-- Transactions DataGrid (internal scrollbar) -->
+                <!-- Transactions -->
                 <DataGrid Grid.Row="0"
                           ItemsSource="{Binding FilteredTransactions}"
                           AutoGenerateColumns="False"
@@ -88,7 +88,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <!-- IncomeLoss card (ALL IncomeLosses) - fixed height so transactions keep their area -->
+                <!-- IncomeLoss card  -->
                 <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,8,0,0" Height="320">
                     <StackPanel>
                         <TextBlock Text="Income Loss" Style="{StaticResource TitleTextBlock}" />
@@ -116,7 +116,7 @@
                                             <TextBlock Text="{Binding AmountLost, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
                                             <TextBlock Text=" → " Margin="6,0"/>
                                             <TextBlock Text="{Binding RefundAmount, StringFormat=C}" Width="100" HorizontalAlignment="Right"/>
-                                            <!-- Removed per-Item 'Net' display -->
+                                            
                                         </StackPanel>
 
                                         <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
@@ -139,7 +139,7 @@
 
             <Separator Grid.Column="1" VerticalAlignment="Stretch" Margin="4,0"/>
 
-            <!-- RIGHT: Categories (top) + Projected (bottom) -->
+            <!-- RIGHT: Categories + Projected -->
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -182,7 +182,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Projected card (simple summary) -->
+                <!-- Projected card (under) -->
                 <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="8" Margin="0,0,0,8" MaxHeight="180">
                     <StackPanel>
                         <TextBlock Text="Projected (next month)" Style="{StaticResource TitleTextBlock}" />
@@ -203,7 +203,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- filler row if you want additional content below -->
+                
                 <Border Grid.Row="2" Background="Transparent"/>
             </Grid>
         </Grid>

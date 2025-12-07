@@ -8,6 +8,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <!--  footer row for buttons -->
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <TextBlock Text="Category" Style="{StaticResource TitleTextBlock}" Grid.Row="0" />

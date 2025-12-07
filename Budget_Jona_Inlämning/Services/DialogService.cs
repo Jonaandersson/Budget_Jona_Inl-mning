@@ -47,7 +47,7 @@ public class DialogService : IDialogService
             }
 
             window.Close();
-            // If viewModel implements IHaveDialogResult, we may set the result from it, otherwise null
+            // If viewModel implements IHaveDialogResult, set the result from it, otherwise null
             if (viewModel is IHaveDialogResult h && h.DialogResult.HasValue)
             {
                 tcs.TrySetResult(h.DialogResult);
@@ -63,7 +63,7 @@ public class DialogService : IDialogService
             requestClose.CloseRequested += CloseHandler;
         }
 
-        // If window closed by user (x), complete the task
+        
         window.Closed += (_, _) =>
         {
             if (!tcs.Task.IsCompleted)
@@ -79,14 +79,14 @@ public class DialogService : IDialogService
             }
         };
 
-        // Show as dialog
+        
         window.ShowDialog();
 
         return tcs.Task;
     }
 }
 
-// Small helper interfaces for dialog pattern
+// helper interfaces for dialog pattern
 public interface IDialogRequestClose
 {
     event EventHandler? CloseRequested;
